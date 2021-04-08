@@ -10,4 +10,4 @@
 * [tinyWM](https://github.com/mackstann/tinywm)
 * [SimpleWM](https://github.com/kcirick/simplewm)
 * [catWM](https://github.com/pyknite/catwm)
-* [dwm](dwm.suckless.org)
+* [dwm](https://dwm.suckless.org/)
