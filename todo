@@ -1,0 +1,22 @@
+#workspace
+#per-workspace props
+#sloppyfocus
+#desktop mode
+#rules
+#swap master
+#cornering windows
+#resize and move floating windows with key
+#tiled layout
+#monocle layout
+#center windows
+#fullscreen
+#restart wm ( works only for change in colors and key-bindings )
+#client to desktop, fullscreen bug
+#
+accordian layout
+gaps
+hide client
+group windows and apply action to the group
+clicking in gtk apps
+autostart apps
+sticky windows
