@@ -27,18 +27,22 @@
 * Corner floating windows
 * Fullscreen windows
 * Partial EWMH & ICCCM support
-* Workspaces
+* Workspaces with per-workspace properties
+* sloppy focus (buggy)
+* Show Desktop Mode (Hide all clients)
 * Autostart apps
 * Works with panel like [Polybar](https://github.com/polybar/polybar)
 
 # TODO
-* Layouts - accordian, magnifier
+* Layouts - accordian, magnifier, tabbed
 * Hiding clients, sticky clients
 * Grouping windows to perform grouped actions
 * Gaps
+* Client decorations
 
 # Configuration
-The WM is configured using ini file, which gets parsed at run-time (using my very own [INI parser](https://github.com/dheerajshenoy/iniparser) (not well documented)).
+The WM is configured using ini file, which gets parsed at run-time (using my very own [INI parser](https://github.com/dheerajshenoy/iniparser) (not well documented)). Check [CONFIG.md]() file for more info about configuration.
+
 # WM's I took help from
 * [BerryWM](https://berrywm.org/)
 * [tinyWM](https://github.com/mackstann/tinywm)
