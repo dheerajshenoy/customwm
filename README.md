@@ -41,7 +41,7 @@
 * Client decorations
 
 # Configuration
-The WM is configured using ini file, which gets parsed at run-time (using my very own [INI parser](https://github.com/dheerajshenoy/iniparser) (not well documented)). Check [CONFIG.md]() file for more info about configuration.
+The WM is configured using ini file, which gets parsed at run-time (using my very own [INI parser](https://github.com/dheerajshenoy/iniparser) (not well documented)). Check [CONFIG.md](https://github.com/dheerajshenoy/customwm/blob/master/CONFIG.md) file for more info about configuration.
 
 # WM's I took help from
 * [BerryWM](https://berrywm.org/)
