@@ -18,7 +18,7 @@ install: all
 	install -Dm 755 $(BIN)/$(EXEC) $(DESTDIR)$(BINDIR)/$(WMNAME)
 	@echo "Done"
 
-$(BIN)/$(EXEC): $(SRC)/ddwm.cpp
+$(BIN)/$(EXEC): $(SRC)/$(WMNAME).cpp
 	@echo "Building..."
 	$(CXX) -l$(LIB) $^ -o $(BIN)/$(EXEC)
 

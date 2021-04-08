@@ -19,7 +19,7 @@ using namespace std;
 using namespace std;
 
 
-class ddwm
+class customwm
 {
     public:
         vector<Key>KEYS;

@@ -1,6 +1,6 @@
 #include "customwm.hpp"
 
-void ddwm::
+void customwm::
 setup()
 {
     logfile.open("/home/redundant/customwm.log", ios::out | ios::trunc);
@@ -56,7 +56,7 @@ setup()
     loop();
 }
 
-void ddwm::
+void customwm::
 setup_restartable()
 {
     log("Restarting WM");
@@ -65,7 +65,7 @@ setup_restartable()
     applylayout();
 }
 
-void ddwm::
+void customwm::
 apply_rules(Client *c)
 {
     log("RULES");
@@ -89,7 +89,7 @@ apply_rules(Client *c)
         XFree(ch.res_class);
 }
 
-void ddwm::
+void customwm::
 init_ewmh()
 {
     //log("EWMH atoms LOADING!");
@@ -124,7 +124,7 @@ init_ewmh()
     //log("EWMH atoms LOADED!");
 }
 
-void ddwm::
+void customwm::
 read_config()
 {
     log("Reading config");
@@ -196,7 +196,7 @@ read_config()
     config.Close();
 }
 
-void ddwm::
+void customwm::
 read_keys(vector<vector<string>> K)
 {
     //log("Reading keys");
@@ -235,7 +235,7 @@ read_keys(vector<vector<string>> K)
     //log("Keys added!");
 }
 
-void ddwm::
+void customwm::
 save_desktop(int i)
 {
     desktop[i].mfact = MASTER_FACTOR;
@@ -247,7 +247,7 @@ save_desktop(int i)
     desktop[i].show_panel = SHOW_PANEL;
 }
 
-void ddwm::
+void customwm::
 select_desktop(int i)
 {
     head = desktop[i].head;
@@ -261,7 +261,7 @@ select_desktop(int i)
     ewmh_set_current_desktop();
 }
 
-void ddwm::
+void customwm::
 change_desktop(int desk)
 {
     vector<Client *> sticky_clients;
@@ -290,7 +290,7 @@ change_desktop(int desk)
     update_current_client();
 }
 
-void ddwm::
+void customwm::
 client_to_desktop(Client *c, int desk)
 {
     log("Sending client to desktop " + to_string(desk));
@@ -310,7 +310,7 @@ client_to_desktop(Client *c, int desk)
     //applylayout();
 }
 
-vector<string> ddwm::
+vector<string> customwm::
 split(string STR, string DELIM)
 {
     vector<string> temp;
@@ -328,7 +328,7 @@ split(string STR, string DELIM)
     return {};
 }
 
-void ddwm::
+void customwm::
 loop()
 {
     //log("Event loop");
@@ -374,7 +374,7 @@ loop()
     }
 }
 
-void ddwm::
+void customwm::
 grab_buttons()
 {
     //log("Grabbing buttons");
@@ -385,7 +385,7 @@ grab_buttons()
 }
 //EVENTS
 
-void ddwm::
+void customwm::
 enter_notify(XEvent *e)
 {
     log("Enter Notify!");
@@ -403,7 +403,7 @@ enter_notify(XEvent *e)
 
 }
 
-void ddwm::
+void customwm::
 key_press(XEvent *e)
 {
     //log("KEY PRESS");
@@ -416,7 +416,7 @@ key_press(XEvent *e)
             spawn(itr->function, itr->arg);
 }
 
-void ddwm::
+void customwm::
 destroy_notify(XEvent *e)
 {
 
@@ -443,7 +443,7 @@ destroy_notify(XEvent *e)
     update_current_client();
 }
 
-void ddwm::
+void customwm::
 motion_notify(XEvent *e)
 {
     log("Motion notify");
@@ -465,7 +465,7 @@ motion_notify(XEvent *e)
     }
 }
 
-void ddwm::
+void customwm::
 map_notify(XEvent *e)
 {
     log("Map Notify");
@@ -476,7 +476,7 @@ map_notify(XEvent *e)
         XSetInputFocus(dpy, trans, RevertToParent, CurrentTime);
 }
 
-void ddwm::
+void customwm::
 unmap_notify(XEvent *e)
 {
     log("Unmap Notify");
@@ -493,7 +493,7 @@ unmap_notify(XEvent *e)
     applylayout();
 }
 
-void ddwm::
+void customwm::
 configure_request(XEvent *e)
 {
     log("Configure Request");
@@ -512,7 +512,7 @@ configure_request(XEvent *e)
     //log("Configure request for window");
 }
 
-void ddwm::
+void customwm::
 configure_notify(XEvent *e)
 {
     XConfigureEvent *ev = &e->xconfigure;
@@ -532,7 +532,7 @@ configure_notify(XEvent *e)
         XMoveResizeWindow(dpy, c->dec, c->x, c->y - c->bw - TITLE_HEIGHT, c->w + BORDER_WIDTH, TITLE_HEIGHT);
 }
 
-void ddwm::
+void customwm::
 client_message(XEvent *e)
 {
     log("Received client message");
@@ -560,7 +560,7 @@ client_message(XEvent *e)
     }
 }
 
-void ddwm::
+void customwm::
 button_press(XEvent *e)
 {
     log("Button Press");
@@ -584,7 +584,7 @@ button_press(XEvent *e)
     }
 }
 
-void ddwm::
+void customwm::
 button_release(XEvent *e)
 {
     Client *c;
@@ -593,7 +593,7 @@ button_release(XEvent *e)
     XUngrabPointer(dpy, CurrentTime);
 }
 
-void ddwm::
+void customwm::
 map_request(XEvent *e)
 {
     log("Mapping Window");
@@ -664,7 +664,7 @@ map_request(XEvent *e)
 
 // EVENTS
 
-void ddwm::
+void customwm::
 update_current_client()
 {
     log("Updating current client");
@@ -700,7 +700,7 @@ update_current_client()
     XSync(dpy, false);
 }
 
-ulong ddwm::
+ulong customwm::
 getcolor(const char *color)
 {
     XColor c;
@@ -713,7 +713,7 @@ getcolor(const char *color)
     return c.pixel;
 }
 
-Client* ddwm::
+Client* customwm::
 get_client_from_window(Window w)
 {
     Client *c;
@@ -725,7 +725,7 @@ get_client_from_window(Window w)
     return NULL;
 }
 
-void ddwm::
+void customwm::
 set_fullscreen(Client *c)
 {
     log("Setting fullscreen");
@@ -752,7 +752,7 @@ set_fullscreen(Client *c)
     update_current_client();
 }
 
-void ddwm::
+void customwm::
 set_sticky(Client *c)
 {
     Client *t;
@@ -772,7 +772,7 @@ set_sticky(Client *c)
     update_current_client();
 }
 
-void ddwm::
+void customwm::
 set_float(Client *c)
 {
     log("Floating client");
@@ -787,7 +787,7 @@ set_float(Client *c)
     applylayout();
     update_current_client();
 }
-void ddwm::
+void customwm::
 add_window(Window w)
 {
     log("Adding window");
@@ -841,7 +841,7 @@ add_window(Window w)
     XSelectInput(dpy, c->win, SLOPPY_FOCUS ? EnterWindowMask: PointerMotionMask);
 }
 
-void ddwm::
+void customwm::
 remove_window(Window w)
 {
     log("Removing window");
@@ -875,7 +875,7 @@ remove_window(Window w)
     free(c);
 }
 
-void ddwm::
+void customwm::
 log(string msg, int stick_out)
 {
     if(stick_out)
@@ -884,7 +884,7 @@ log(string msg, int stick_out)
         logfile << msg << endl;
 }
 
-void ddwm::
+void customwm::
 spawn(string func, string arg)
 {
 
@@ -954,7 +954,7 @@ spawn(string func, string arg)
     }
 }
 
-void ddwm::
+void customwm::
 killclient(Client *c)
 {
     log("Client killed");
@@ -974,7 +974,7 @@ killclient(Client *c)
         }
 }
 
-int ddwm::
+int customwm::
 sendevent(Client *c, Atom proto)
 {
     int n;
@@ -1001,7 +1001,7 @@ sendevent(Client *c, Atom proto)
     return exists;
 }
 
-void ddwm::
+void customwm::
 send_kill_signal(Window w)
 { 
     XEvent ke;
@@ -1017,7 +1017,7 @@ send_kill_signal(Window w)
     XSendEvent(dpy, w, false, NoEventMask, &ke);
 }
 
-void ddwm::
+void customwm::
 client_decorations_create(Client *c)
 {
     log("Setting client decoration");
@@ -1035,7 +1035,7 @@ client_decorations_create(Client *c)
     ewmh_set_frame_extent(c);
 }
 
-void ddwm::
+void customwm::
 ewmh_set_frame_extent(Client *c)
 {
     ulong data[4];
@@ -1056,7 +1056,7 @@ ewmh_set_frame_extent(Client *c)
             PropModeReplace, (unsigned char *) data, 4);
 }
 
-void ddwm::
+void customwm::
 client_decorations_destroy(Client *c)
 {
     if(!c) return;
@@ -1067,7 +1067,7 @@ client_decorations_destroy(Client *c)
     ewmh_set_frame_extent(c);
 }
 
-void ddwm::
+void customwm::
 ewmh_set_client_list()
 {
     log("Client List Updated");
@@ -1079,7 +1079,7 @@ ewmh_set_client_list()
             PropModeAppend, (unsigned char *) &(c->win), 1);
 }
 
-void ddwm::
+void customwm::
 ewmh_set_desktop(Client *c, int desktop)
 {
     long data[] = { desktop };
@@ -1088,14 +1088,14 @@ ewmh_set_desktop(Client *c, int desktop)
             XA_CARDINAL, 32, PropModeReplace, (unsigned char *) data, 1);
 }
 
-void ddwm::
+void customwm::
 ewmh_set_current_desktop()
 {
     long data[] = { current_desktop };
     XChangeProperty(dpy, root, netatom[NetCurrentDesktop], XA_CARDINAL, 32, PropModeReplace, (unsigned char *) data, 1);
 }
 
-void ddwm::
+void customwm::
 ewmh_init_number_of_desktops()
 {
     log("Setting up number of desktops!");
@@ -1103,7 +1103,7 @@ ewmh_init_number_of_desktops()
     XChangeProperty(dpy, root, netatom[NetNumberOfDesktops], XA_CARDINAL, 32, PropModeReplace, (unsigned char *) data, 1);
 }
 
-void ddwm::
+void customwm::
 ewmh_init_desktop_names()
 {
     log("Setting up desktop names!");
@@ -1120,7 +1120,7 @@ ewmh_init_desktop_names()
     workspaces.clear();
 }
 
-void ddwm::
+void customwm::
 ewmh_init_viewport()
 {
     log("Setting up desktop viewport!");
@@ -1128,7 +1128,7 @@ ewmh_init_viewport()
     XChangeProperty(dpy, root, netatom[NetDesktopViewport], XA_CARDINAL, 32, PropModeReplace, (unsigned char *) data, 2);
 }
 
-void ddwm::
+void customwm::
 cleanup()
 {
     log("Shutting WM");
@@ -1147,7 +1147,7 @@ cleanup()
     XCloseDisplay(dpy);
 }
 
-void ddwm::
+void customwm::
 move_window_with_key(Client *c, string dir, int step)
 {
     log("Moving window with key");
@@ -1162,7 +1162,7 @@ move_window_with_key(Client *c, string dir, int step)
         XMoveWindow(dpy, c->win, c->x + step, c->y);
 }
 
-void ddwm::
+void customwm::
 resize_window_with_key(Client *c, string dir, int step)
 {
     log("Resizing window with key");
@@ -1187,7 +1187,7 @@ resize_window_with_key(Client *c, string dir, int step)
             XResizeWindow(dpy, c->win, c->w + step, c->h);
 }
 
-void ddwm::
+void customwm::
 move_window_to_corner(Client *c, string corner)
 {
     log("Cornering client");
@@ -1202,7 +1202,7 @@ move_window_to_corner(Client *c, string corner)
         XMoveWindow(dpy, c->win, sw-c->w-2*BORDER_WIDTH, sh-c->h-2*BORDER_WIDTH);
 }
 
-void ddwm::
+void customwm::
 center_client(Client *c)
 {
     if(!c || !c->is_float) return;
@@ -1210,7 +1210,7 @@ center_client(Client *c)
     XMoveWindow(dpy, c->win, (sw - c->w)/2, (sh - c->h)/2);
 }
 
-void ddwm::
+void customwm::
 scratchpad_spawn(string scratchkey)
 {
     Client *c;
@@ -1218,7 +1218,7 @@ scratchpad_spawn(string scratchkey)
         log(c->name);
 }
 
-int ddwm::
+int customwm::
 get_text_prop(Window w, Atom atom, char *text, uint32_t size)
 {
     XTextProperty name;
@@ -1247,7 +1247,7 @@ get_text_prop(Window w, Atom atom, char *text, uint32_t size)
 
 }
 
-void ddwm::
+void customwm::
 change_layout()
 {
     (current_layout > 2) ? current_layout = 0 : current_layout += 1;
@@ -1255,7 +1255,7 @@ change_layout()
     applylayout();
 }
 
-void ddwm::
+void customwm::
 applylayout()
 {
     log("Applying layout");
@@ -1273,7 +1273,7 @@ applylayout()
     }
 }
 
-void ddwm::
+void customwm::
 layout_tiled()
 {
     log("Tiled layout");
@@ -1321,7 +1321,7 @@ layout_tiled()
     }
     }
 
-void ddwm::
+void customwm::
 layout_accordian()
 {
     if(!head) return;
@@ -1350,7 +1350,7 @@ layout_accordian()
     }
 }
 
-void ddwm::
+void customwm::
 layout_magnify()
 {
     if(!head) return;
@@ -1386,7 +1386,7 @@ layout_magnify()
     }
 }
 
-void ddwm::
+void customwm::
 layout_monocle()
 {
     if(!head) return;
@@ -1411,14 +1411,14 @@ layout_monocle()
 
 }
 
-void ddwm::
+void customwm::
 toggle_panel()
 {
     SHOW_PANEL = !SHOW_PANEL;
     applylayout();
 }
 
-void ddwm::
+void customwm::
 focus_prev()
 {
     Client *c;
@@ -1432,7 +1432,7 @@ focus_prev()
     update_current_client();
 }
 
-void ddwm::
+void customwm::
 focus_next()
 {
     if(current)
@@ -1445,7 +1445,7 @@ focus_next()
     update_current_client();
 }
 
-Client* ddwm::
+Client* customwm::
 get_prev_client_from_tiled(Window w)
 {
     if(!w || tiled_clients.size() == 0) return NULL;
@@ -1456,7 +1456,7 @@ get_prev_client_from_tiled(Window w)
     return NULL;
 }
 
-Client* ddwm::
+Client* customwm::
 get_next_client_from_tiled(Window w)
 {
     if(!w || tiled_clients.size() == 0) return NULL;
@@ -1467,7 +1467,7 @@ get_next_client_from_tiled(Window w)
     return NULL;
 }
 
-void ddwm::
+void customwm::
 move_win_up()
 {
     log("Moving win up");
@@ -1484,7 +1484,7 @@ move_win_up()
     update_current_client();
 }
 
-void ddwm::
+void customwm::
 move_win_down()
 {
     log("Moving win down");
@@ -1501,7 +1501,7 @@ move_win_down()
     update_current_client();
 }
 
-void ddwm::
+void customwm::
 change_master_size(int step)
 {
     log("Changing master size");
@@ -1511,7 +1511,7 @@ change_master_size(int step)
     applylayout();
 }
 
-void ddwm::
+void customwm::
 change_outer_gaps(int step)
 {
     if(OGAPS + step >= 0)
@@ -1519,7 +1519,7 @@ change_outer_gaps(int step)
     applylayout();
 }
 
-void ddwm::
+void customwm::
 change_inner_gaps(int step)
 {
     if(IGAPS + step >= 0)
@@ -1527,7 +1527,7 @@ change_inner_gaps(int step)
     applylayout();
 }
 
-void ddwm::
+void customwm::
 swap_master()
 {
     Window tmp;
@@ -1540,7 +1540,7 @@ swap_master()
     update_current_client();
 }
 
-void ddwm::
+void customwm::
 show_desktop()
 {
     Client *c;
@@ -1559,7 +1559,7 @@ show_desktop()
     }
 }
 
-int ddwm::
+int customwm::
 manage_xsend_icccm(Client *c, Atom atom)
 {
 int n;
@@ -1588,7 +1588,7 @@ int n;
 
 int main()
 {
-    ddwm *wm = new ddwm();
+    customwm *wm = new customwm();
     wm->setup();
     return 0;
 }
