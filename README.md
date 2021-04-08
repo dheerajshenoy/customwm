@@ -17,7 +17,7 @@
 
 # Installation
 * Libraries required : Xlib
-* Programming Language C++ STL
+* Clone this repo and run `` sudo make clean install ``
 
 # Features of CustomWM
 * Layouts - Tiling, Monocle
