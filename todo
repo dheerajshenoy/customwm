@@ -12,11 +12,19 @@
 #fullscreen
 #restart wm ( works only for change in colors and key-bindings )
 #client to desktop, fullscreen bug
-#
-accordian layout
-gaps
+#gaps
+#autostart apps
+#client decorations
+#decorations only of floating mode
+minimize on titlebar click
+left/top decoration config
 hide client
+accordian layout
+magnifier layout
+centered master layout
+rules applied window bugged
 group windows and apply action to the group
-clicking in gtk apps
-autostart apps
 sticky windows
+scratchpads
+ipc
+handle resize correctly

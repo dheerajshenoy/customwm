@@ -3,6 +3,7 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
+#include <X11/extensions/shape.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -25,7 +26,7 @@ class customwm
         vector<Key>KEYS;
         vector<string> PROGRAMS;
         vector<vector<string>> K, P;
-        vector<Client *> tiled_clients;
+        vector<Client *> tiled_clients, fixed_clients, grouped_clients;
         vector<string> wsp = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
         vector<Key>::iterator itr;
         vector<Button> BUTTONS;
@@ -37,7 +38,7 @@ class customwm
         Display *dpy;
         Window checkwin;
         int screen, root, sw, sh, exist,
-            IGAPS, OGAPS, motion=0,
+            GAPS, motion=0,
             numlockmask=0,
             current_desktop=0,
             BORDER_WIDTH=5, TITLE_HEIGHT = 30,
@@ -56,13 +57,18 @@ class customwm
                FLOATING_BORDER,
                STICKY_BORDER,
                URGENT_BORDER,
-               TITLE_BORDER;
+               TITLE_BORDER,
+               GROUPED_BORDER,
+               FIXED_BORDER;
+
         bool SHOW_PANEL,
              SLOPPY_FOCUS,
              show_mode=0,
              ATTACH_END,
              ATTACH_MASTER,
-             SINGLE_CLIENT_BORDER;
+             SINGLE_CLIENT_BORDER,
+             SINGLE_CLIENT_GAPS,
+             DECORATIONS_ON_FLOAT;
         float MASTER_FACTOR;
         XButtonEvent s;
     void add_window(Window w);
@@ -77,9 +83,16 @@ class customwm
     void read_keys(vector<vector<string>> k);
     void read_config();
     vector<string> split(string STR, string DELIM);
-    void set_fullscreen(Client *c);
-    void set_float(Client *c);
-    void set_sticky(Client *c);
+    void fake_fullscreen(Client *c);
+    void set_fullscreen(Client *c, bool f);
+    void toggle_fullscreen(Client *c);
+    void set_float(Client *c, bool f, bool move=false);
+    void set_grouped(Client *c, bool s);
+    void toggle_grouped(Client *c);
+    void toggle_fixed(Client *c);
+    void toggle_float(Client *c);
+    void set_sticky(Client *c, bool s);
+    void toggle_sticky(Client *c);
     ulong getcolor(const char *color);
     void client_decoration_toggle(Client *c);
     void client_decorations_destroy(Client *c);
@@ -104,19 +117,18 @@ class customwm
     void scratchpad_spawn(string scratchkey);
     void applylayout();
     void layout_tiled();
-    void layout_accordian();
-    void layout_magnify();
     void layout_monocle();
+    void layout_centered_master();
     void change_layout();
     void change_master_size(int step);
-    void change_outer_gaps(int step);
-    void change_inner_gaps(int step);
+    void change_gaps(int step);
     void swap_master();
     Client* get_client_from_window(Window w);
     Client* get_prev_client_from_tiled(Window w);
     Client* get_next_client_from_tiled(Window w);
     void apply_rules(Client *c);
     void show_desktop();
+    void ipc(string func, string arg);
 
     int sendevent(Client *c, Atom proto);
     int get_text_prop(Window w, Atom atom, char *text, uint32_t size);
@@ -129,6 +141,10 @@ class customwm
     void ewmh_init_viewport();
     void ewmh_init_number_of_desktops();
     
+    void manage_args(vector<string> args, int argc);
+    string ipc_get_layout();
+    string ipc_get_current_workspace();
+
     int manage_xsend_icccm(Client *c, Atom atom);
 
     void client_message(XEvent *e);

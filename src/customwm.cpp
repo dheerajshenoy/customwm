@@ -21,8 +21,6 @@ setup()
         desktop[i] = (Desktop) { .head = head,
                                  .current = current,
                                  .layout = current_layout,
-                                 .igaps = IGAPS,
-                                 .ogaps = OGAPS,
                                  .show_panel = SHOW_PANEL,
                                  .mfact = MASTER_FACTOR };
     grab_buttons();
@@ -40,6 +38,7 @@ setup()
     ewmh_init_number_of_desktops();
     ewmh_init_viewport();
     ewmh_init_desktop_names();
+    log(to_string(current_layout), 1);
 
     XSelectInput(dpy, root,
             SubstructureRedirectMask |
@@ -54,6 +53,29 @@ setup()
             );
     s.subwindow = None;
     loop();
+}
+
+void customwm::
+set_grouped(Client *c, bool s)
+{
+
+
+
+}
+
+void customwm::
+toggle_grouped(Client *c)
+{
+    if(!c) return;
+    log("Grouping client");
+    if(!c->is_grouped)
+        grouped_clients.push_back(c);
+    else
+        for(int i=0; i<grouped_clients.size(); i++)
+            if(grouped_clients.at(i) == c)
+                grouped_clients.erase(grouped_clients.begin() + i);
+    c->is_grouped = !c->is_grouped;
+    update_current_client();
 }
 
 void customwm::
@@ -78,10 +100,12 @@ apply_rules(Client *c)
     instance = ch.res_name ? ch.res_name : "broken";
     for(int i=0; i<RULES.size(); i++)
         if(RULES.at(i).Class == "^N" || RULES.at(i).Class == Class)
-            if(RULES.at(i).title == instance || RULES.at(i).title == "^N") {
+            if(RULES.at(i).title == instance || RULES.at(i).title == "^N")
+            {
                 if(RULES.at(i).desktop > 0)
                     c->desk = RULES.at(i).desktop - 1;
-                c->is_float = (bool) RULES.at(i).floating;
+                if(RULES.at(i).floating == 1)
+                    c->is_float = true;
             }
     if(ch.res_name)
         XFree(ch.res_name);
@@ -133,14 +157,23 @@ read_config()
     // CLIENT 
     BORDER_WIDTH = stoi(config.getValue("BORDER_WIDTH", "CLIENT", "0").at(0));
     TITLE_HEIGHT = stoi(config.getValue("TITLE_HEIGHT", "CLIENT", "0").at(0));
-    IGAPS = stoi(config.getValue("INNER_GAPS", "WM", "5").at(0));
-    OGAPS = stoi(config.getValue("OUTER_GAPS", "WM", "2").at(0));
+    GAPS = stoi(config.getValue("GAPS", "WM", "2").at(0));
     PANEL_HEIGHT = stoi(config.getValue("PANEL_HEIGHT", "PANEL", "30").at(0));
     MASTER_FACTOR = stof(config.getValue("MASTER_FACTOR", "WM", "0.55").at(0)) * sw;
     if(config.getValue("SINGLE_CLIENT_BORDER", "WM", "false").at(0) == "true")
         SINGLE_CLIENT_BORDER = true;
     else
         SINGLE_CLIENT_BORDER = false;
+
+    if(config.getValue("DECORATIONS_ON_FLOAT", "WM", "false").at(0) == "true")
+        DECORATIONS_ON_FLOAT = true;
+    else
+        DECORATIONS_ON_FLOAT = false;
+
+    if(config.getValue("SINGLE_CLIENT_GAPS", "WM", "false").at(0) == "true")
+        SINGLE_CLIENT_GAPS = true;
+    else
+        SINGLE_CLIENT_GAPS = false;
 
     if(config.getValue("SLOPPY_FOCUS", "WM", "true").at(0) == "true")
         SLOPPY_FOCUS = true;
@@ -169,6 +202,9 @@ read_config()
     FLOATING_BORDER = config.getValue("FLOATING_BORDER", "COLOR", "#FFFFFF").at(0);
     STICKY_BORDER = config.getValue("STICKY_BORDER", "COLOR", "#FA2").at(0);
     TITLE_BORDER = config.getValue("TITLE_BORDER", "COLOR", "#FF5000").at(0);
+    TITLE_BACKGROUND = config.getValue("TITLE_BG", "COLOR", "#FF5000").at(0);
+    FIXED_BORDER = config.getValue("FIXED_BORDER", "COLOR", "#FF7EAC").at(0);
+    GROUPED_BORDER = config.getValue("GROUPED_BORDER", "COLOR", "#AFF").at(0);
 
     K.clear();
     P.clear();
@@ -240,8 +276,7 @@ save_desktop(int i)
 {
     desktop[i].mfact = MASTER_FACTOR;
     desktop[i].layout = current_layout;
-    desktop[i].igaps = IGAPS;
-    desktop[i].ogaps = IGAPS;
+    desktop[i].gaps = GAPS;
     desktop[i].head = head;
     desktop[i].current = current;
     desktop[i].show_panel = SHOW_PANEL;
@@ -252,8 +287,7 @@ select_desktop(int i)
 {
     head = desktop[i].head;
     current = desktop[i].current;
-    IGAPS = desktop[i].igaps;
-    OGAPS = desktop[i].ogaps;
+    GAPS = desktop[i].gaps;
     MASTER_FACTOR = desktop[i].mfact;
     current_layout = desktop[i].layout;
     SHOW_PANEL = desktop[i].show_panel;
@@ -272,42 +306,82 @@ change_desktop(int desk)
     if(head)
     {
         for(c=head; c; c=c->next)
+        {
             XUnmapWindow(dpy, c->win);
+            if(c->is_sticky)
+            {
+                sticky_clients.push_back(c);
+                remove_window(c->win);
+            }
+        }
     }
+    /*if(sticky_clients.size() > 0)
+        for(int i=0; i<sticky_clients.size(); i++)
+            add_window(sticky_clients.at(i)->win);*/
     save_desktop(current_desktop);
     select_desktop(desk);
     if(head)
     {
         for(c=head; c; c=c->next)
         {
-            XMoveResizeWindow(dpy,c->win, 10, 10, 100, 100);
+            //XMoveResizeWindow(dpy,c->win, c->x, c->y, c->w, c->h);
             XMapWindow(dpy, c->win);
+            if(c->is_float)
+                set_float(c, true);
+            else if(c->is_full)
+                set_fullscreen(c, true);
+            else if(c->is_sticky)
+                set_sticky(c, true);
         }
     }
     current_desktop = desk;
     ewmh_set_client_list();
-    applylayout(); 
     update_current_client();
+    applylayout(); 
 }
 
 void customwm::
 client_to_desktop(Client *c, int desk)
 {
+    Client *d;
     log("Sending client to desktop " + to_string(desk));
+    if(!c || desk == current_desktop) return;
     int tmp2 = current_desktop;
-    if(desk == current_desktop || !c)
-        return;
     select_desktop(desk);
-    add_window(c->win);
-    c->desk = desk;
-    ewmh_set_desktop(c, c->desk);
-    save_desktop(desk);
-    select_desktop(tmp2);
-    XUnmapWindow(dpy, c->win);
-    remove_window(c->win);
+    if(c->is_grouped)
+    {
+        for(int i=0; i<grouped_clients.size(); i++)
+        {
+            add_window(grouped_clients.at(i)->win);
+            XMoveResizeWindow(dpy, grouped_clients.at(i)->win, 10, 10, 100, 100);
+            grouped_clients.at(i)->desk = desk;
+            ewmh_set_desktop(grouped_clients.at(i), grouped_clients.at(i)->desk);
+            save_desktop(desk);
+            select_desktop(tmp2);
+            XUnmapWindow(dpy, grouped_clients.at(i)->win);
+            remove_window(grouped_clients.at(i)->win);
+            toggle_grouped(grouped_clients.at(i));
+        }
+    }
+    else
+    {
+        if(DECORATIONS_ON_FLOAT && c->dec)
+        {
+            client_decorations_destroy(c);
+            c->is_dec = false;
+        }
+        add_window(c->win);
+        XMoveResizeWindow(dpy, c->win, 10, 10, 100, 100);
+        c->desk = desk;
+        ewmh_set_desktop(c, c->desk);
+        save_desktop(desk);
+        select_desktop(tmp2);
+        XUnmapWindow(dpy, c->win);
+        remove_window(c->win);
+    }
     save_desktop(tmp2);
     ewmh_set_client_list();
-    //applylayout();
+    applylayout();
 }
 
 vector<string> customwm::
@@ -381,7 +455,6 @@ grab_buttons()
     XGrabButton(dpy, Button1, Mod4Mask, root, True, MOUSEMASK, GrabModeAsync,GrabModeAsync, None, None);
     XGrabButton(dpy, Button2, Mod4Mask, root, True, MOUSEMASK, GrabModeAsync,GrabModeAsync, None, None);
     XGrabButton(dpy, Button3, Mod4Mask, root, True, MOUSEMASK, GrabModeAsync,GrabModeAsync, None, None);
-    XGrabButton(dpy, Button1, 0,        root, True, MOUSEMASK, GrabModeAsync,GrabModeAsync, None, None);
 }
 //EVENTS
 
@@ -438,9 +511,11 @@ destroy_notify(XEvent *e)
     }
     save_desktop(current_desktop);
     remove_window(ev->window);
+    if(current->dec)
+        client_decorations_destroy(current);
     ewmh_set_client_list();
-    applylayout();
     update_current_client();
+    applylayout();
 }
 
 void customwm::
@@ -448,21 +523,19 @@ motion_notify(XEvent *e)
 {
     log("Motion notify");
     Client *c;
-    int xdiff, ydiff, lasttime;
+    int xdiff, ydiff;
     XMotionEvent *ev = &e->xmotion;
-    c = get_client_from_window(ev->subwindow);
+    if(!ev->window) return;
+    c = get_client_from_window(ev->window);
     if(!c) return;
     xdiff = e->xbutton.x_root - s.x_root;
     ydiff = e->xbutton.y_root - s.y_root;
     if(CLEANMASK(ev->state) == CLEANMASK(Mod4Mask))
-    {
-        if(c->w + xdiff > 10 && c->h + ydiff > 10)
-        XMoveResizeWindow(dpy, c->win,
+        XMoveResizeWindow(dpy, s.subwindow,
                 attr.x + (s.button == Button1 ? xdiff : 0),
                 attr.y + (s.button == Button1 ? ydiff : 0),
                 MAX(1, attr.width + (s.button == Button3 ? xdiff : 0)),
                 MAX(1, attr.height + (s.button == Button3 ? ydiff : 0)));
-    }
 }
 
 void customwm::
@@ -485,8 +558,11 @@ unmap_notify(XEvent *e)
     Client *c;
     c = get_client_from_window(ev->window);
     if(!c) return;
-    if(c->dec)
+    if(DECORATIONS_ON_FLOAT && c->dec)
+    {
         XDestroyWindow(dpy, c->dec);
+        c->is_dec = false;
+    }
     remove_window(c->win);
     ewmh_set_client_list();
     update_current_client();
@@ -528,8 +604,8 @@ configure_notify(XEvent *e)
     c->y = ev->y;
     c->w = ev->width;
     c->h = ev->height;
-    if(c->dec && c->is_full)
-        XMoveResizeWindow(dpy, c->dec, c->x, c->y - c->bw - TITLE_HEIGHT, c->w + BORDER_WIDTH, TITLE_HEIGHT);
+    if(DECORATIONS_ON_FLOAT && c->dec)
+        XMoveResizeWindow(dpy, c->dec, c->x, c->y + BORDER_WIDTH - TITLE_HEIGHT, c->w + 2*BORDER_WIDTH, TITLE_HEIGHT);
 }
 
 void customwm::
@@ -543,7 +619,7 @@ client_message(XEvent *e)
     if(cme->message_type == netatom[NetWMState])
     {
         if(cme->data.l[1] == netatom[NetWMFullscreen] || cme->data.l[2] == netatom[NetWMFullscreen])
-            set_fullscreen(c);
+            toggle_fullscreen(c);
 
         /*else if (cme->message_type == netatom[NetActiveWindow])
             if(!c->is_urgent)
@@ -569,17 +645,16 @@ button_press(XEvent *e)
     if(ev->window == None) return;
     c = get_client_from_window(ev->subwindow);
     if(!c) return;
-    if(ev->subwindow == c->dec) return;
-    XGetWindowAttributes(dpy, ev->subwindow, &attr);
     s = e->xbutton;
-    if(ev->state == Mod4Mask && e->xbutton.button == Button1 || e->xbutton.button == Button3)
+    if(s.subwindow == None) return;
+    XGetWindowAttributes(dpy, ev->subwindow, &attr);
+    if(CLEANMASK(ev->state) == CLEANMASK(Mod4Mask) && s.button == Button1 || CLEANMASK(ev->state) == CLEANMASK(Mod4Mask) && s.button == Button3)
     {
         current = c;
         if(!c->is_float)
-        {
-            c->is_float=true;
-        }
-        update_current_client();
+            set_float(c, true);
+        else
+            update_current_client();
         applylayout();
     }
 }
@@ -587,8 +662,7 @@ button_press(XEvent *e)
 void customwm::
 button_release(XEvent *e)
 {
-    Client *c;
-    c = get_client_from_window(s.subwindow);
+    log("Button Release");
     s.subwindow = None;
     XUngrabPointer(dpy, CurrentTime);
 }
@@ -623,7 +697,7 @@ map_request(XEvent *e)
         || prop == netatom[NetWMWindowTypeUtility]
         || prop == netatom[NetWMWindowTypeMenu])
         {
-            XMapWindow(dpy, w);
+            XMapRaised(dpy, w);
             return;
         }
     }
@@ -650,16 +724,21 @@ map_request(XEvent *e)
     d->oldh = d->h = wa.height;
     d->oldbw = d->bw = wa.border_width;
     d->desk = current_desktop;
+    d->dec = None;
     apply_rules(d);
+    //client_decorations_create(d);
     add_window(d->win);
     ewmh_set_desktop(d, d->desk);
     ewmh_set_client_list();
-    XMoveResizeWindow(dpy, d->win, 100, 50, 700, 400); 
-    //client_decorations_create(d);
-    XMapWindow(dpy, d->win);
     client_to_desktop(d, d->desk);
-    applylayout();
+    XMoveResizeWindow(dpy, d->win, 100, 50, 700, 400); 
+    XMapWindow(dpy, d->win);
+    if(d->is_float)
+        set_float(current, true);
+    else if(d->is_full)
+        set_fullscreen(current, true);
     update_current_client();
+    applylayout();
 }
 
 // EVENTS
@@ -672,24 +751,30 @@ update_current_client()
     if(!head) return;
     for(c=head; c; c=c->next)
     {
-        /*if(SINGLE_CLIENT_BORDER || c->is_float)
-            XSetWindowBorderWidth(dpy, c->win, BORDER_WIDTH);
-        else
-            if(tiled_clients.size() > 1)
-                XSetWindowBorderWidth(dpy, c->win, BORDER_WIDTH);*/
         XSetWindowBorderWidth(dpy, c->win, BORDER_WIDTH);
         if(current == c)
         {
             if(c->is_sticky)
                 XSetWindowBorder(dpy, c->win, getcolor(STICKY_BORDER.c_str()));
-            else if(c->is_float)
+            else if(c->is_float && !c->is_grouped)
             {
                 XSetWindowBorder(dpy, c->win, getcolor(FLOATING_BORDER.c_str()));
+                if(DECORATIONS_ON_FLOAT && c->dec)
+                    XRaiseWindow(dpy, c->dec);
                 XRaiseWindow(dpy, c->win);
             }
+            else if(c->is_fixed)
+            {
+                XSetWindowBorder(dpy, c->win, getcolor(FIXED_BORDER.c_str()));
+                set_float(c, true, true);
+            }
+            else if(c->is_grouped)
+                XSetWindowBorder(dpy, c->win, getcolor(GROUPED_BORDER.c_str()));
+            else if(c->is_full)
+                XSetWindowBorderWidth(dpy, c->win, 0);
             else
                 XSetWindowBorder(dpy, c->win, getcolor(ACTIVE_BORDER.c_str()));
-            XSetInputFocus(dpy, c->win, RevertToParent, CurrentTime);
+            XSetInputFocus(dpy, c->win, RevertToPointerRoot, CurrentTime);
             XChangeProperty(dpy, c->win, netatom[NetActiveWindow],
                     XA_WINDOW, 32, PropModeReplace, (unsigned char *) &(c->win),1);
             manage_xsend_icccm(c, wmatom[WMTakeFocus]);
@@ -717,20 +802,69 @@ Client* customwm::
 get_client_from_window(Window w)
 {
     Client *c;
-    for(c=head; c; c=c->next) {
+    for(c=head; c; c=c->next)
+    {
         if(c->win == w)
             return c;
     }
-        
     return NULL;
 }
 
 void customwm::
-set_fullscreen(Client *c)
+fake_fullscreen(Client *c)
+{
+    log("Setting fake fullscreen");
+    if(!c) return;
+    if(!c->is_full)
+        XChangeProperty(dpy, c->win, netatom[NetWMFullscreen], XA_ATOM, 32, PropModeReplace,
+                (unsigned char *) &(c->win), 1);
+    else
+        XChangeProperty(dpy, c->win, netatom[NetWMFullscreen], XA_ATOM, 32, PropModeReplace,
+                (unsigned char *) 0, 0);
+    c->is_full = !c->is_full;
+}
+
+void customwm::
+toggle_fullscreen(Client *c)
 {
     log("Setting fullscreen");
     if(!c) return;
     if(!c->is_full)
+    {   
+        c->oldx = c->x;
+        c->oldy = c->y;
+        c->oldw = c->w;
+        c->oldh = c->h;
+        c->old_state = c->is_float;
+        c->is_float = false;
+        XMoveResizeWindow(dpy,  c->win, 0, 0, sw, sh); 
+        XSetWindowBorderWidth(dpy, c->win, 0);
+        XRaiseWindow(dpy, c->win);
+        XChangeProperty(dpy, c->win, netatom[NetWMFullscreen], XA_WINDOW, 32, PropModeReplace,
+            (unsigned char *) &(c->win), 1);
+    }
+    else
+    {
+        XMoveResizeWindow(dpy, c->win, c->oldx, c->oldy, c->oldw, c->oldh);
+        if(c->old_state)
+            set_float(c, true);
+        c->x = c->oldx;
+        c->y = c->oldy;
+        c->h = c->oldh;
+        c->w = c->oldw;
+        XChangeProperty(dpy, c->win, netatom[NetWMFullscreen], XA_WINDOW, 32, PropModeReplace,
+            (unsigned char *) 0, 0);
+    }
+    c->is_full = !c->is_full;
+    update_current_client();
+}
+
+void customwm::
+set_fullscreen(Client *c, bool f)
+{
+    log("Setting fullscreen");
+    if(!c) return;
+    if(f)
     {   
         c->oldx = c->x;
         c->oldy = c->y;
@@ -748,45 +882,126 @@ set_fullscreen(Client *c)
         c->h = c->oldh;
         c->w = c->oldw;
     }
-    c->is_full = !c->is_full;
+    c->is_full = f;
     update_current_client();
 }
 
 void customwm::
-set_sticky(Client *c)
+toggle_sticky(Client *c)
 {
     Client *t;
     if(!c) return;
     if(c->is_sticky)
-    {
-        c->is_sticky = false;
         XChangeProperty(dpy, c->win, netatom[NetWMSticky], XA_WINDOW, 32,
                 PropModeReplace,(unsigned char *) 0, 0);
-    }
     else
-    {
-        c->is_sticky = true;
         XChangeProperty(dpy, c->win, netatom[NetWMSticky], XA_WINDOW, 32,
                 PropModeReplace, (unsigned char *) &(c->win), 1);
-    }
+    c->is_sticky = !c->is_sticky;
     update_current_client();
 }
 
 void customwm::
-set_float(Client *c)
+set_sticky(Client *c, bool s)
 {
-    log("Floating client");
+    Client *t;
     if(!c) return;
-    if(!c->is_float)
-    {
-        XMoveWindow(dpy, c->win, (sw - c->w)/2, (sh - c->h)/2);
-        c->is_float = true;
-    }
+    if(s)
+        XChangeProperty(dpy, c->win, netatom[NetWMSticky], XA_WINDOW, 32,
+                PropModeReplace,(unsigned char *) 0, 0);
     else
-        c->is_float = false;
-    applylayout();
+        XChangeProperty(dpy, c->win, netatom[NetWMSticky], XA_WINDOW, 32,
+                PropModeReplace, (unsigned char *) &(c->win), 1);
+    c->is_sticky = s;
     update_current_client();
 }
+
+void customwm::
+toggle_float(Client *c)
+{
+    log("Setting float");
+    if(!c || c->is_fixed) return;
+    if(c->is_grouped)
+    {
+        for(int i=0; i<grouped_clients.size(); i++)
+        {
+            if(!grouped_clients.at(i)->is_float)
+            {
+                XMoveWindow(dpy, grouped_clients.at(i)->win, (sw - grouped_clients.at(i)->w)/2, (sh - grouped_clients.at(i)->h)/2);
+            }
+            grouped_clients.at(i)->is_float = !grouped_clients.at(i)->is_float;
+            toggle_grouped(grouped_clients.at(i));
+        }
+    }
+    else
+    {
+        if(!c->is_float)
+        {
+            if(DECORATIONS_ON_FLOAT)
+            {
+                client_decorations_create(c);
+                XMapRaised(dpy, c->dec);
+            }
+            XMoveWindow(dpy, c->win, (sw - c->w)/2, (sh - c->h)/2);
+            c->is_float = true;
+        }
+        else
+        {
+            if(DECORATIONS_ON_FLOAT && c->dec)
+            {
+                XUnmapWindow(dpy, c->dec);
+                c->is_dec = false;
+            }
+            c->is_float = false;
+        }
+    }
+
+    update_current_client();
+    applylayout();
+
+}
+
+void customwm::
+set_float(Client *c, bool f, bool move)
+{
+    log("Setting float");
+    if(!c) return;
+    if(f && move)
+    {
+        if(DECORATIONS_ON_FLOAT)
+        {
+            client_decorations_create(c);
+            XMapWindow(dpy, c->dec);
+        }
+        XMoveWindow(dpy, c->win, (sw - c->w)/2, (sh - c->h)/2);
+    }
+    else if(f && DECORATIONS_ON_FLOAT)
+    {
+        client_decorations_create(c);
+        XMapWindow(dpy, c->dec);
+    }
+    else if(!f)
+    {
+        if(c->dec && DECORATIONS_ON_FLOAT)
+        {
+            XUnmapWindow(dpy, c->dec);
+            c->is_dec = false;
+        }
+    }
+    c->is_float = f;
+    update_current_client();
+    applylayout();
+}
+
+void customwm::
+toggle_fixed(Client *c)
+{
+    if(!c) return;
+    c->is_fixed = !c->is_fixed;
+    update_current_client();
+    log("Setting client as fixed");
+}
+
 void customwm::
 add_window(Window w)
 {
@@ -910,13 +1125,19 @@ spawn(string func, string arg)
         if(func == "TOGGLE")
         {
             if(arg == "full")
-                set_fullscreen(current);
+                toggle_fullscreen(current);
+            else if(arg == "fakefull")
+                fake_fullscreen(current);
             else if(arg == "float")
-                set_float(current);
+                toggle_float(current);
             else if(arg == "sticky")
-                set_sticky(current);
+                toggle_sticky(current);
             else if(arg == "panel")
                 toggle_panel();
+            /*else if(arg == "fixed")
+                toggle_fixed(current);*/
+            /*else if(arg == "group")
+                toggle_grouped(current);*/
         }
         else if(func == "CLDESKTOP")
             client_to_desktop(current, stoi(arg)-1);
@@ -947,10 +1168,8 @@ spawn(string func, string arg)
         }
         else if(func == "MASTERSIZE")
             change_master_size(stoi(arg));
-        else if(func == "IGAPS")
-            change_inner_gaps(stoi(arg));
-        else if(func == "OGAPS")
-            change_outer_gaps(stoi(arg));
+        else if(func == "GAPS")
+            change_gaps(stoi(arg));
     }
 }
 
@@ -969,8 +1188,6 @@ killclient(Client *c)
             ke.xclient.data.l[1] = CurrentTime;
             XSendEvent(dpy, current->win, false, NoEventMask, &ke);
             send_kill_signal(current->win);
-            if(current->dec)
-                client_decorations_destroy(current);
         }
 }
 
@@ -1022,13 +1239,13 @@ client_decorations_create(Client *c)
 {
     log("Setting client decoration");
     int x, y, w, h;
-    x = c->x;
+    x = c->x + BORDER_WIDTH;
     y = c->y + TITLE_HEIGHT;
-    w = c->w + BORDER_WIDTH;
-    h = c->h + TITLE_HEIGHT;
-    Window dec = XCreateSimpleWindow(dpy, root, x, y, w, h, 1,
-            getcolor(TITLE_BORDER.c_str()),
-            getcolor(TITLE_BACKGROUND.c_str()));
+    w = c->w + 2*BORDER_WIDTH;
+    h = TITLE_HEIGHT;
+    Window dec = XCreateSimpleWindow(dpy, root, x, y, w, h, 0,
+            getcolor(TITLE_BACKGROUND.c_str()),
+            getcolor(TITLE_BORDER.c_str()));
     c->dec = dec;
     c->is_dec = true;
     XSelectInput(dpy, c->dec, ExposureMask | EnterWindowMask);
@@ -1138,7 +1355,10 @@ cleanup()
             killclient(c);
     for(auto p: tiled_clients)
         delete(p);
+    for(auto p: fixed_clients)
+        delete(p);
     tiled_clients.clear();
+    fixed_clients.clear();
     free(current);
     free(head);
     XDestroyWindow(dpy, checkwin);
@@ -1179,7 +1399,7 @@ resize_window_with_key(Client *c, string dir, int step)
     }
     else if(dir == "left")
     {
-        if(c->w > step)
+        if(c->w - step > 0)
             XResizeWindow(dpy, c->win, c->w - step, c->h);
     }
     else if(dir == "right")
@@ -1213,9 +1433,6 @@ center_client(Client *c)
 void customwm::
 scratchpad_spawn(string scratchkey)
 {
-    Client *c;
-    for(c=head; c; c=c->next)
-        log(c->name);
 }
 
 int customwm::
@@ -1251,7 +1468,6 @@ void customwm::
 change_layout()
 {
     (current_layout > 2) ? current_layout = 0 : current_layout += 1;
-    log(to_string(current_layout));
     applylayout();
 }
 
@@ -1268,7 +1484,7 @@ applylayout()
             layout_monocle();
             break;
         case 2:
-            layout_magnify();
+            layout_centered_master();
             break;
     }
 }
@@ -1280,19 +1496,20 @@ layout_tiled()
     if(!head) return;
     Client *c;
     int y, n=0, mfact = MASTER_FACTOR, 
-        ogaps = OGAPS,
-        igaps = IGAPS,
-        t = 0;
+        gaps = GAPS, new_y, new_h,
+        t = 0, s;
     tiled_clients.clear();
     (SHOW_PANEL) ? y = PANEL_HEIGHT : y = 0;
     if(!head->next)
     {
             if(!head->is_float)
             {
-                XMoveResizeWindow(dpy, head->win, BORDER_WIDTH+ogaps, BORDER_WIDTH+ogaps+y,
-                    sw-2*BORDER_WIDTH-2*ogaps-2, sh-2*BORDER_WIDTH-2*ogaps-y-2);
+                if(!SINGLE_CLIENT_GAPS)
+                    gaps = 0;
                 if(!SINGLE_CLIENT_BORDER)
                     XSetWindowBorderWidth(dpy, head->win, 0);
+                XMoveResizeWindow(dpy, head->win, gaps, gaps+y-2,
+                    sw-2*gaps, sh-2*gaps-y);
             }
     }
     else
@@ -1301,90 +1518,30 @@ layout_tiled()
             if(!c->is_float)
                 tiled_clients.push_back(c);
         if(tiled_clients.size() == 1)
-            XMoveResizeWindow(dpy, head->win, BORDER_WIDTH+ogaps, BORDER_WIDTH+ogaps+y,
-                sw-2*BORDER_WIDTH-2*ogaps-2, sh-2*BORDER_WIDTH-2*ogaps-y-2);
+        {
+            if(!SINGLE_CLIENT_GAPS)
+                gaps = 0;
+            XMoveResizeWindow(dpy, tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-3,
+                sw-2*BORDER_WIDTH-2*gaps, sh-2*BORDER_WIDTH-2*gaps-y);
+        }
 
         if(tiled_clients.size() > 1)
         {
-            XMoveResizeWindow(dpy, tiled_clients.at(0)->win, BORDER_WIDTH+ogaps, BORDER_WIDTH+ogaps+y,
-                    mfact-2*igaps-2*BORDER_WIDTH-2, sh-2*BORDER_WIDTH-2*ogaps-y-2);
+            XMoveResizeWindow(dpy, tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-2,
+                    mfact-2*gaps-2*BORDER_WIDTH-2, sh-2*BORDER_WIDTH-2*gaps-y-2);
             n = tiled_clients.size() - 1;
 
             for(int i=1; i<tiled_clients.size(); i++)
             {
-                XMoveResizeWindow(dpy, tiled_clients.at(i)->win, mfact+igaps+BORDER_WIDTH,
-                        BORDER_WIDTH+ogaps+y + t-2, sw-mfact-2*ogaps-2*BORDER_WIDTH-2,
-                        sh/n - ogaps -2*BORDER_WIDTH-2);
-                t = t + sh/n;
+                XMoveResizeWindow(dpy, tiled_clients.at(i)->win, mfact+gaps+BORDER_WIDTH-5,
+                        BORDER_WIDTH+gaps+y+t-2, sw-mfact-2*gaps-2*BORDER_WIDTH+1,
+                        sh/n - 2*gaps -2*BORDER_WIDTH - y/n);
+                t = i * (sh-y)/n;
             }
         }
     }
     }
 
-void customwm::
-layout_accordian()
-{
-    if(!head) return;
-    Client *c;
-    int n=0, mfact = MASTER_FACTOR, 
-        ogaps = OGAPS,
-        igaps = IGAPS,
-        y;
-    tiled_clients.clear();
-    (SHOW_PANEL) ? y = PANEL_HEIGHT : y = 0;
-    if(!head->next && !head->is_float)
-    {
-            XMoveResizeWindow(dpy, head->win, BORDER_WIDTH+ogaps, BORDER_WIDTH+ogaps+y,
-                sw-2*BORDER_WIDTH-2*ogaps-2, sh-2*BORDER_WIDTH-2*ogaps-y-2);
-                if(!SINGLE_CLIENT_BORDER)
-                    XSetWindowBorderWidth(dpy, head->win, 0);
-    } 
-    else
-    {
-        for(c=head; c; c=c->next)
-            if(!c->is_float)
-                tiled_clients.push_back(c);
-        for(int i=0; i<tiled_clients.size(); i++)
-            XMoveResizeWindow(dpy, tiled_clients.at(i)->win, BORDER_WIDTH+OGAPS, BORDER_WIDTH+OGAPS,
-                    sw-2*BORDER_WIDTH-2*OGAPS-2, sh/i - 2*BORDER_WIDTH-2*OGAPS-y);
-    }
-}
-
-void customwm::
-layout_magnify()
-{
-    if(!head) return;
-    Client *c;
-    int n=0, t=0,mfact = MASTER_FACTOR, 
-        ogaps = OGAPS,
-        igaps = IGAPS,
-        y;
-    tiled_clients.clear();
-    (SHOW_PANEL) ? y = PANEL_HEIGHT : y = 0;
-    if(!head->next && !head->is_float)
-    {
-            XMoveResizeWindow(dpy, head->win, BORDER_WIDTH+ogaps, BORDER_WIDTH+ogaps+y,
-                sw-2*BORDER_WIDTH-2*ogaps-2, sh-2*BORDER_WIDTH-2*ogaps-y-2);
-                if(!SINGLE_CLIENT_BORDER)
-                    XSetWindowBorderWidth(dpy, head->win, 0);
-    }
-    else
-    {
-        for(c=head; c; c=c->next)
-            if(!c->is_float)
-                tiled_clients.push_back(c);
-        XMoveResizeWindow(dpy, tiled_clients.at(0)->win, BORDER_WIDTH+ogaps, BORDER_WIDTH+ogaps,
-                2*sw/3-2*BORDER_WIDTH-2*ogaps-2, sh-2*BORDER_WIDTH-2*ogaps-y-2);
-        n = tiled_clients.size()-1;
-        for(int i=1; i<tiled_clients.size(); i++)
-        {
-            XMoveResizeWindow(dpy, tiled_clients.at(i)->win, mfact+igaps+BORDER_WIDTH,
-                    BORDER_WIDTH+ogaps+y + t-2, sw-mfact-2*ogaps-2*BORDER_WIDTH-2,
-                    sh/n - ogaps -2*BORDER_WIDTH);
-            t = t + sh/n;
-        }
-    }
-}
 
 void customwm::
 layout_monocle()
@@ -1392,8 +1549,7 @@ layout_monocle()
     if(!head) return;
     Client *c;
     int n=0, t=0,mfact = MASTER_FACTOR, 
-        ogaps = OGAPS,
-        igaps = IGAPS,
+        gaps = GAPS,
         y;
     (SHOW_PANEL) ? y = PANEL_HEIGHT : y = 0;
     if(!head->next && !head->is_float)
@@ -1403,9 +1559,68 @@ layout_monocle()
                 tiled_clients.push_back(c);
         for(int i=0; i < tiled_clients.size(); i++)
         {
-            XMoveResizeWindow(dpy, tiled_clients.at(i)->win, BORDER_WIDTH+ogaps, BORDER_WIDTH+ogaps+y,
-                sw-2*BORDER_WIDTH-2*ogaps-2, sh-2*BORDER_WIDTH-2*ogaps-y-2);
+            XMoveResizeWindow(dpy, tiled_clients.at(i)->win, BORDER_WIDTH+gaps, BORDER_WIDTH+gaps+y,
+                sw-2*BORDER_WIDTH-2*gaps-2, sh-2*BORDER_WIDTH-2*gaps-y-2);
             XSetWindowBorderWidth(dpy, tiled_clients.at(i)->win, 0);
+        }
+    }
+
+}
+
+void customwm::
+layout_centered_master()
+{
+    log("Centered Master layout");
+    if(!head) return;
+    Client *c;
+    int y, n=0, mfact = MASTER_FACTOR, 
+        gaps = GAPS, new_y, new_h,
+        t = 0, s;
+    tiled_clients.clear();
+    (SHOW_PANEL) ? y = PANEL_HEIGHT : y = 0;
+    if(!head->next)
+    {
+            if(!head->is_float)
+            {
+                if(!SINGLE_CLIENT_GAPS)
+                    gaps = 0;
+                if(!SINGLE_CLIENT_BORDER)
+                    XSetWindowBorderWidth(dpy, head->win, 0);
+                XMoveResizeWindow(dpy, head->win, gaps, gaps+y-2,
+                    sw-2*gaps, sh-2*gaps-y);
+            }
+    }
+    else
+    {
+        for(c=head; c; c=c->next)
+            if(!c->is_float)
+                tiled_clients.push_back(c);
+        if(tiled_clients.size() == 1)
+        {
+            if(!SINGLE_CLIENT_GAPS)
+                gaps = 0;
+            XMoveResizeWindow(dpy, tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-3,
+                sw-2*BORDER_WIDTH-2*gaps, sh-2*BORDER_WIDTH-2*gaps-y);
+        }
+        else if(tiled_clients.size() == 2)
+        {
+            XMoveResizeWindow(dpy, tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-2,
+                    mfact-2*gaps-2*BORDER_WIDTH-2, sh-2*BORDER_WIDTH-2*gaps-y-2);
+            XMoveResizeWindow(dpy, tiled_clients.at(1)->win, mfact+gaps+BORDER_WIDTH-3,
+                        BORDER_WIDTH+gaps+y-2, sw-mfact-2*gaps-2*BORDER_WIDTH+1,
+                        sh-2*gaps -2*BORDER_WIDTH-y-2);
+        }
+        else if(tiled_clients.size() > 2)
+        {
+
+            XMoveResizeWindow(dpy, tiled_clients.at(0)->win, (sw-mfact)/2 + BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-2,
+                mfact-2*gaps-2*BORDER_WIDTH-2, sh-2*BORDER_WIDTH-2*gaps-y-2);
+            for(int i=1; i<tiled_clients.size(); i++)
+            {
+                if(i%2 == 0)
+                {
+                }
+            }
         }
     }
 
@@ -1414,14 +1629,21 @@ layout_monocle()
 void customwm::
 toggle_panel()
 {
+    if(current->is_full) return;
     SHOW_PANEL = !SHOW_PANEL;
+    const char *panel_show = "polybar-msg cmd show &";
+    const char *panel_hide = "polybar-msg cmd hide &";
+    if(SHOW_PANEL)
+        system(panel_show);
+    else
+        system(panel_hide);
     applylayout();
 }
 
 void customwm::
 focus_prev()
 {
-    Client *c;
+    if(!head->next) return;
     if(current)
     {
         if(current->prev)
@@ -1435,6 +1657,7 @@ focus_prev()
 void customwm::
 focus_next()
 {
+    if(!head->next) return;
     if(current)
     {
         if(current->next)
@@ -1473,15 +1696,15 @@ move_win_up()
     log("Moving win up");
     Window tmp;
     Client *c;
-    if(!current || current->is_float || current->prev == head) return;
+    if(!current || current->is_float) return;
     tmp = current->win;
     c = get_prev_client_from_tiled(current->win);
     if(!c) return;
     current->win = c->win;
     c->win = tmp;
-    applylayout();
     current = c;
     update_current_client();
+    applylayout();
 }
 
 void customwm::
@@ -1496,9 +1719,9 @@ move_win_down()
     if(!c) return;
     current->win = c->win;
     c->win = tmp;
-    applylayout();
     current = c;
     update_current_client();
+    applylayout();
 }
 
 void customwm::
@@ -1512,18 +1735,10 @@ change_master_size(int step)
 }
 
 void customwm::
-change_outer_gaps(int step)
+change_gaps(int step)
 {
-    if(OGAPS + step >= 0)
-        OGAPS = OGAPS + step;
-    applylayout();
-}
-
-void customwm::
-change_inner_gaps(int step)
-{
-    if(IGAPS + step >= 0)
-        IGAPS = IGAPS + step;
+    if(GAPS + step >= 0)
+        GAPS = GAPS + step;
     applylayout();
 }
 
@@ -1536,8 +1751,8 @@ swap_master()
     head->win = current->win;
     current->win = tmp;
     current = head;
-    applylayout();
     update_current_client();
+    applylayout();
 }
 
 void customwm::
@@ -1586,9 +1801,103 @@ int n;
     return exists;
 }
 
-int main()
+void customwm::
+hide_client(Client *c)
+{
+
+}
+
+void customwm::
+ipc(string func, string arg)
+{
+    if(arg == "")
+    {
+        if(func == "layout")
+        {}
+    }
+    else
+    {
+
+
+    }
+}
+
+string customwm::
+ipc_get_layout()
+{
+    switch(current_layout)
+    {
+        case 0:
+            return "Tiled";
+            break;
+        case 1:
+            return "Monocle";
+            break;
+        case 2:
+            return "Accordian";
+            break;
+        case 3:
+            return "Magnifier";
+            break;
+    }
+    return "No layout";
+}
+
+string customwm::
+ipc_get_current_workspace()
+{
+    return to_string(current_desktop + 1);
+}
+
+void customwm::
+manage_args(vector<string> args, int argc)
+{
+    for(int i=0; i<argc-1; i++)
+        if(args.at(0) == "get")
+        {
+            if(args.size() == 1)
+            {
+                cout << "Please enter one of the commands for ipc" << endl;
+                break;
+            }
+            if(args.at(1) == "layout")                  // CURRENT LAYOUT
+            {
+                 cout << ipc_get_layout() << endl;
+                 break;
+            }
+            else if(args.at(1) == "workspace")
+            {
+                cout << ipc_get_current_workspace() << endl;
+                break;
+            }
+        }
+        else if(args.at(0) == "set")
+        {
+            if(args.at(1) == "active_border")
+            {
+                ACTIVE_BORDER = args.at(2);
+                update_current_client();
+            }
+            else if(args.at(1) == "gaps")
+                change_gaps(stoi(args.at(2)));
+        }
+
+}
+
+vector<string> args;
+bool running=false;
+int main(int argc, char *argv[])
 {
     customwm *wm = new customwm();
-    wm->setup();
+    /*if(argc > 1)
+    {
+        for(int i=1; i<argc; i++)
+            args.push_back(argv[i]);
+        wm->manage_args(args, argc);
+    }
+    else
+    {*/
+        running = true;
+        wm->setup();
     return 0;
 }

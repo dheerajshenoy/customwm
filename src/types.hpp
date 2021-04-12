@@ -7,7 +7,10 @@ struct Client {
          is_sticky,
          is_float,
          is_hidden,
-         is_dec;
+         is_dec,
+         is_fixed,
+         is_grouped,
+         old_state;
     int x, y, w, h, bw,
         oldx, oldy, oldw, oldh, oldbw,
         desk;
@@ -20,7 +23,7 @@ struct Desktop {
     Client *head,
            *current;
     int layout;
-    int igaps, ogaps;
+    int gaps;
     bool show_panel;
     float mfact;
 };
