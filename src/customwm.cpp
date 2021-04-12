@@ -435,9 +435,9 @@ loop()
             case KeyPress:
                 key_press(&ev);
                 break;
-            case MotionNotify:
+            /*case MotionNotify:
                 motion_notify(&ev);
-                break;
+                break;*/
             case EnterNotify:
                 enter_notify(&ev);
                 break;
@@ -521,21 +521,6 @@ destroy_notify(XEvent *e)
 void customwm::
 motion_notify(XEvent *e)
 {
-    log("Motion notify");
-    Client *c;
-    int xdiff, ydiff;
-    XMotionEvent *ev = &e->xmotion;
-    if(!ev->window) return;
-    c = get_client_from_window(ev->window);
-    if(!c) return;
-    xdiff = e->xbutton.x_root - s.x_root;
-    ydiff = e->xbutton.y_root - s.y_root;
-    if(CLEANMASK(ev->state) == CLEANMASK(Mod4Mask))
-        XMoveResizeWindow(dpy, s.subwindow,
-                attr.x + (s.button == Button1 ? xdiff : 0),
-                attr.y + (s.button == Button1 ? ydiff : 0),
-                MAX(1, attr.width + (s.button == Button3 ? xdiff : 0)),
-                MAX(1, attr.height + (s.button == Button3 ? ydiff : 0)));
 }
 
 void customwm::
@@ -645,26 +630,116 @@ button_press(XEvent *e)
     if(ev->window == None) return;
     c = get_client_from_window(ev->subwindow);
     if(!c) return;
-    s = e->xbutton;
-    if(s.subwindow == None) return;
-    XGetWindowAttributes(dpy, ev->subwindow, &attr);
-    if(CLEANMASK(ev->state) == CLEANMASK(Mod4Mask) && s.button == Button1 || CLEANMASK(ev->state) == CLEANMASK(Mod4Mask) && s.button == Button3)
+    if(CLEANMASK(ev->state) == CLEANMASK(Mod4Mask))
     {
-        current = c;
-        if(!c->is_float)
-            set_float(c, true);
-        else
-            update_current_client();
-        applylayout();
+        log("DD", 1);
+        if(ev->button == Button1)
+        {
+            if(current != c)
+                current = c;
+            if(!c->is_float)
+                set_float(c, true);
+            applylayout();
+            move_mouse();
+        }
+        else if(ev->button == Button3)
+            resize_mouse();
     }
 }
 
 void customwm::
+resize_mouse()
+{
+    int nh, nw;
+    XEvent ev;
+    Client *c;
+    Time lasttime =0;
+    
+    if(!(c = current))
+        return;
+    if(c->is_full)
+        return;
+    c->oldx = c->x;
+    c->oldy = c->y;
+    c->oldw = c->w;
+    c->oldh = c->h;
+    if(XGrabPointer(dpy, root, false, MOUSEMASK, GrabModeAsync, GrabModeAsync, None,
+                None, CurrentTime) != GrabSuccess)
+        return;
+    XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + BORDER_WIDTH - 1, c->h + BORDER_WIDTH - 1);
+    do {
+        XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
+        switch(ev.type)
+        {
+            case ConfigureRequest:
+                configure_request(&ev);
+            case MapRequest:
+                map_request(&ev);
+            case MotionNotify:
+                if((ev.xmotion.time - lasttime) <= 1000/60)
+                    continue;
+                lasttime = ev.xmotion.time;
+                nw = MAX(ev.xmotion.x - c->oldx -2 * BORDER_WIDTH + 1, 1);
+                nh = MAX(ev.xmotion.y - c->oldy -2 * BORDER_WIDTH + 1, 1);
+                XMoveResizeWindow(dpy, c->win, c->x, c->y, nw, nh);
+        }
+    } while(ev.type != ButtonRelease);
+    XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + BORDER_WIDTH -1, c->h + BORDER_WIDTH -1);
+    XUngrabPointer(dpy, CurrentTime);
+    update_current_client();
+}
+
+void customwm::
+move_mouse()
+{
+    int nx, ny, x, y;
+    XEvent ev;
+    Client *c;
+    Time lasttime =0;
+    Window dummy;
+    int di;
+    unsigned int dui;
+    
+    if(!(c = current))
+        return;
+    if(c->is_full)
+        return;
+    c->oldx = c->x;
+    c->oldy = c->y;
+    c->oldw = c->w;
+    c->oldh = c->h;
+    if(XGrabPointer(dpy, root, false, MOUSEMASK, GrabModeAsync, GrabModeAsync, None,
+                None, CurrentTime) != GrabSuccess)
+        return;
+    if(!(XQueryPointer(dpy, root, &dummy, &dummy, &x, &y, &di, &di, &dui)))
+        return;
+
+    do {
+        XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
+        switch(ev.type)
+        {
+            case ConfigureRequest:
+                configure_request(&ev);
+                break;
+            case MapRequest:
+                map_request(&ev);
+                break;
+            case MotionNotify:
+                if((ev.xmotion.time - lasttime) <= 1000/60)
+                    continue;
+                lasttime = ev.xmotion.time;
+                nx = c->oldx + (ev.xmotion.x - x);
+                ny = c->oldy + (ev.xmotion.y - y);
+                XMoveResizeWindow(dpy, c->win, nx, ny, c->w, c->h);
+        }
+    } while(ev.type != ButtonRelease);
+    XUngrabPointer(dpy, CurrentTime);
+    update_current_client();
+}
+void customwm::
 button_release(XEvent *e)
 {
     log("Button Release");
-    s.subwindow = None;
-    XUngrabPointer(dpy, CurrentTime);
 }
 
 void customwm::

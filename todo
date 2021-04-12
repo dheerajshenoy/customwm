@@ -16,6 +16,7 @@
 #autostart apps
 #client decorations
 #decorations only of floating mode
+#handle resize correctly
 minimize on titlebar click
 left/top decoration config
 hide client
@@ -27,4 +28,3 @@ group windows and apply action to the group
 sticky windows
 scratchpads
 ipc
-handle resize correctly
