@@ -17,14 +17,24 @@
 #client decorations
 #decorations only of floating mode
 #handle resize correctly
+#rules applied window bugged
+#binary layout
+#column grid top
+#column grid bottom
+#deck layout
+#fake fullscreen
+
 minimize on titlebar click
 left/top decoration config
 hide client
+
 accordian layout
 magnifier layout
+fibonacci layout (spiral / dwindle)
+grid layout
+grid magnifier
 centered master layout
-rules applied window bugged
+
 group windows and apply action to the group
 sticky windows
 scratchpads
-ipc
