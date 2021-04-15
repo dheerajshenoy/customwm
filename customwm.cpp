@@ -56,11 +56,7 @@ setup()
 
 void customwm::
 set_grouped(Client *c, bool s)
-{
-
-
-
-}
+{}
 
 void customwm::
 toggle_grouped(Client *c)
@@ -298,11 +294,6 @@ select_desktop(int i)
 }
 
 void customwm::
-send_stickies(int desk)
-{
-}
-
-void customwm::
 change_desktop(int desk)
 {
     log("Changing desktop");
@@ -314,14 +305,11 @@ change_desktop(int desk)
         for(c=head; c; c=c->next)
         {
             XUnmapWindow(dpy, c->win);
-<<<<<<< HEAD
             if(c->is_sticky)
             {
                 client_to_desktop(c, desk);
                 remove_window(c->win, current_desktop);
             }
-=======
->>>>>>> master
         }
     }
     save_desktop(current_desktop);
@@ -355,30 +343,19 @@ client_to_desktop(Client *c, int desk)
     if(DECORATIONS_ON_FLOAT && c->dec)
     {
         client_decorations_destroy(c);
-<<<<<<< HEAD
         c->is_dec = false;
     }
-    add_window(c->win, desk);
-    XMoveResizeWindow(dpy, c->win, 10, 10, 100, 100);
-    c->desk = desk;
-    ewmh_set_desktop(c, c->desk);
-    select_desktop(tmp2);
     XUnmapWindow(dpy, c->win);
-    remove_window(c->win, current_desktop);
-=======
-    }
-    add_window(c->win);
+    add_window(c->win, desk);
     XMoveResizeWindow(dpy, c->win, 10, 10, 100, 100);
     c->desk = desk;
     ewmh_set_desktop(c, c->desk);
     save_desktop(desk);
     select_desktop(tmp2);
-    XUnmapWindow(dpy, c->win);
-    remove_window(c->win);
->>>>>>> master
+    remove_window(c->win, desk);
     save_desktop(tmp2);
     ewmh_set_client_list();
-    //applylayout();
+    applylayout();
 }
 
 vector<string> customwm::
@@ -1237,13 +1214,7 @@ spawn(string func, string arg)
             client_to_desktop(current, stoi(arg)-1);
 
         else if(func == "DESKTOP")
-        {
-<<<<<<< HEAD
-=======
-            send_stickies(stoi(arg)-1);
->>>>>>> master
             change_desktop(stoi(arg)-1);
-        }
         else if(func == "MOVEWIN")
         {
             if(arg == "up")
@@ -2313,25 +2284,6 @@ int n;
     return exists;
 }
 
-void customwm::
-hide_client(Client *c)
-{
-    if(!c) return;
-    if(!hidden_client)
-    {
-        temp = c;
-        XUnmapWindow(dpy, c->win);
-        remove_window(c->win);
-        hidden_client = true;
-    }
-    else
-    {
-        add_window(temp->win);
-        XMapWindow(dpy, temp->win);
-        hidden_client = false;
-    }
-    applylayout();
-}
 
 void customwm::
 set_border(Display *dpy, Window w, string color)
