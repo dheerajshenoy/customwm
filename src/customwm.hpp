@@ -24,9 +24,9 @@ class customwm
 {
     public:
         vector<Key>KEYS;
-        vector<string> PROGRAMS;
+        vector<string> PROGRAMS, LAYOUTS;
         vector<vector<string>> K, P;
-        vector<Client *> tiled_clients, fixed_clients, grouped_clients;
+        vector<Client *> tiled_clients, fixed_clients, grouped_clients, sticky_clients;
         vector<string> wsp = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
         vector<Key>::iterator itr;
         vector<Button> BUTTONS;
@@ -37,11 +37,14 @@ class customwm
         Atom netatom[NetLast], wmatom[WMLast], utf8string;
         Display *dpy;
         Window checkwin;
+        Client *temp;
         int screen, root, sw, sh, exist,
             GAPS, motion=0,
             numlockmask=0,
             current_desktop=0,
-            BORDER_WIDTH=5, TITLE_HEIGHT = 30,
+            BORDER_WIDTH=5,
+            TITLE_HEIGHT = 30,
+            TAB_HEIGHT = 10,
             PANEL_HEIGHT=30,
             current_layout=0;
         fstream logfile;
@@ -60,7 +63,6 @@ class customwm
                TITLE_BORDER,
                GROUPED_BORDER,
                FIXED_BORDER;
-
         bool SHOW_PANEL,
              SLOPPY_FOCUS,
              show_mode=0,
@@ -68,7 +70,8 @@ class customwm
              ATTACH_MASTER,
              SINGLE_CLIENT_BORDER,
              SINGLE_CLIENT_GAPS,
-             DECORATIONS_ON_FLOAT;
+             DECORATIONS_ON_FLOAT,
+             hidden_client = false;
         float MASTER_FACTOR;
         XButtonEvent s;
     void add_window(Window w);
@@ -97,6 +100,7 @@ class customwm
     void client_decoration_toggle(Client *c);
     void client_decorations_destroy(Client *c);
     void client_decorations_create(Client *c);
+    void tabbed_decorations(Client *c);
     void killclient(Client *c);
     void send_kill_signal(Window w);
     void client_to_desktop(Client *c, int desk);
@@ -106,6 +110,8 @@ class customwm
     void cleanup();
     void move_window_with_key(Client *c, string dir, int step);
     void resize_window_with_key(Client *c, string dir, int step);
+    void resize_mouse();
+    void move_mouse();
     void move_window_to_corner(Client *c, string corner);
     void center_client(Client *c);
     void hide_client(Client *c);
@@ -116,9 +122,22 @@ class customwm
     void move_win_down();
     void scratchpad_spawn(string scratchkey);
     void applylayout();
+    void change_master_height();
+    void send_stickies(int desk);
+
+
     void layout_tiled();
     void layout_monocle();
-    void layout_centered_master();
+    void layout_binary();
+    void layout_accordian();
+    void layout_column();
+    void layout_tabbed();
+    void layout_fibonacci();
+    void layout_column_grid_bottom();
+    void layout_column_grid_top();
+    void layout_deck();
+    void layout_grid();
+
     void change_layout();
     void change_master_size(int step);
     void change_gaps(int step);
@@ -147,17 +166,18 @@ class customwm
 
     int manage_xsend_icccm(Client *c, Atom atom);
 
+    void set_border(Display *dpy, Window w, string color);
+    void set_window_bg(Display *dpy, Window w, string color);
+
     void client_message(XEvent *e);
     void enter_notify(XEvent *e);
     void destroy_notify(XEvent *e);
     void unmap_notify(XEvent *e);
     void map_notify(XEvent *e);
-    void button_release(XEvent *e);
     void button_press(XEvent *e);
     void key_press(XEvent *e);
     void map_request(XEvent *e);
     void configure_request(XEvent *e);
     void configure_notify(XEvent *e);
-    void motion_notify(XEvent *e);
     void log(string msg, int stick_out=0);
 };
