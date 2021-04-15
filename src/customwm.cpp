@@ -56,11 +56,7 @@ setup()
 
 void customwm::
 set_grouped(Client *c, bool s)
-{
-
-
-
-}
+{}
 
 void customwm::
 toggle_grouped(Client *c)
@@ -298,11 +294,6 @@ select_desktop(int i)
 }
 
 void customwm::
-send_stickies(int desk)
-{
-}
-
-void customwm::
 change_desktop(int desk)
 {
     log("Changing desktop");
@@ -314,6 +305,11 @@ change_desktop(int desk)
         for(c=head; c; c=c->next)
         {
             XUnmapWindow(dpy, c->win);
+            if(c->is_sticky)
+            {
+                client_to_desktop(c, desk);
+                remove_window(c->win, current_desktop);
+            }
         }
     }
     save_desktop(current_desktop);
@@ -347,15 +343,16 @@ client_to_desktop(Client *c, int desk)
     if(DECORATIONS_ON_FLOAT && c->dec)
     {
         client_decorations_destroy(c);
+        c->is_dec = false;
     }
-    add_window(c->win);
+    XUnmapWindow(dpy, c->win);
+    add_window(c->win, desk);
     XMoveResizeWindow(dpy, c->win, 10, 10, 100, 100);
     c->desk = desk;
     ewmh_set_desktop(c, c->desk);
     save_desktop(desk);
     select_desktop(tmp2);
-    XUnmapWindow(dpy, c->win);
-    remove_window(c->win);
+    remove_window(c->win, desk);
     save_desktop(tmp2);
     ewmh_set_client_list();
     applylayout();
@@ -483,10 +480,9 @@ destroy_notify(XEvent *e)
     { 
         return;
     }
-    save_desktop(current_desktop);
-    remove_window(ev->window);
     if(current->dec)
         client_decorations_destroy(current);
+    remove_window(ev->window, current_desktop);
     ewmh_set_client_list();
     update_current_client();
     applylayout();
@@ -510,18 +506,18 @@ unmap_notify(XEvent *e)
     log("Unmap Notify");
     if(show_mode) return;
     XUnmapEvent *ev = &e->xunmap;
-    Client *c;
-    c = get_client_from_window(ev->window);
+    //Client *c;
+    /*c = get_client_from_window(ev->window);
     if(!c) return;
     if(DECORATIONS_ON_FLOAT && c->dec)
     {
         XDestroyWindow(dpy, c->dec);
         c->is_dec = false;
-    }
-    remove_window(c->win);
+    }*/
+    /*remove_window(c->win, current_desktop);
     ewmh_set_client_list();
     update_current_client();
-    applylayout();
+    applylayout();*/
 }
 
 void customwm::
@@ -764,7 +760,7 @@ map_request(XEvent *e)
     d->dec = None;
     apply_rules(d);
     //client_decorations_create(d);
-    add_window(d->win);
+    add_window(d->win, current_desktop);
     ewmh_set_desktop(d, d->desk);
     ewmh_set_client_list();
     client_to_desktop(d, d->desk);
@@ -1076,7 +1072,7 @@ toggle_fixed(Client *c)
 }
 
 void customwm::
-add_window(Window w)
+add_window(Window w, int desk)
 {
     log("Adding window");
     Client *c, *t;
@@ -1130,7 +1126,7 @@ add_window(Window w)
 }
 
 void customwm::
-remove_window(Window w)
+remove_window(Window w, int desk)
 {
     log("Removing window");
     Client *c;
@@ -1218,10 +1214,7 @@ spawn(string func, string arg)
             client_to_desktop(current, stoi(arg)-1);
 
         else if(func == "DESKTOP")
-        {
-            send_stickies(stoi(arg)-1);
             change_desktop(stoi(arg)-1);
-        }
         else if(func == "MOVEWIN")
         {
             if(arg == "up")
@@ -2291,25 +2284,6 @@ int n;
     return exists;
 }
 
-void customwm::
-hide_client(Client *c)
-{
-    if(!c) return;
-    if(!hidden_client)
-    {
-        temp = c;
-        XUnmapWindow(dpy, c->win);
-        remove_window(c->win);
-        hidden_client = true;
-    }
-    else
-    {
-        add_window(temp->win);
-        XMapWindow(dpy, temp->win);
-        hidden_client = false;
-    }
-    applylayout();
-}
 
 void customwm::
 set_border(Display *dpy, Window w, string color)

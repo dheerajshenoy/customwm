@@ -9,7 +9,7 @@
 #include <fstream>
 #include <algorithm>
 #include "types.hpp"
-#include "../include/inipraser.hpp"
+#include "../include/iniparser.hpp"
 using namespace std;
 
 #define BUTTONMASK          (ButtonPressMask | ButtonReleaseMask)
@@ -74,8 +74,8 @@ class customwm
              hidden_client = false;
         float MASTER_FACTOR;
         XButtonEvent s;
-    void add_window(Window w);
-    void remove_window(Window w);
+    void add_window(Window w, int desk);
+    void remove_window(Window w, int desk);
     void setup();
     void setup_restartable();
     void loop();
