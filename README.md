@@ -34,7 +34,7 @@
 * Works with panel like [Polybar](https://github.com/polybar/polybar)
 
 # TODO
-[TODO](https://github.com/dheerajshenoy/customwm/edit/master/todo.md)
+[TODO](https://github.com/dheerajshenoy/customwm/blob/master/todo.md)
 
 # Configuration
 The WM is configured using ini file, which gets parsed at run-time (using my very own [INI parser](https://github.com/dheerajshenoy/iniparser) (not well documented)). Check [CONFIG.md](https://github.com/dheerajshenoy/customwm/blob/master/CONFIG.md) file for more info about configuration.
