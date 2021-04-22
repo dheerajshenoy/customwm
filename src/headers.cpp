@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+
 #include "types.hpp"
 #include "../include/iniparser.hpp"
 #include "customwm.hpp"
@@ -25,3 +26,4 @@
 #include "layouts.cpp"
 #include "mouse.cpp"
 #include "scratchpads.cpp"
+#include "rules.cpp"
