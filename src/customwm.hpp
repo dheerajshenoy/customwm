@@ -1,24 +1,9 @@
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xproto.h>
-#include <X11/Xutil.h>
-#include <X11/cursorfont.h>
-#include <X11/extensions/shape.h>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include "types.hpp"
-#include "../include/iniparser.hpp"
-using namespace std;
-
 #define BUTTONMASK          (ButtonPressMask | ButtonReleaseMask)
 #define MOUSEMASK           (PointerMotionMask | BUTTONMASK)
 #define CLEANMASK(mask)     (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define MAX(a,b)    ((a) > (b) ? (a) : (b))
 
 using namespace std;
-
 
 class customwm
 {
@@ -29,15 +14,14 @@ class customwm
         vector<Client *> tiled_clients, fixed_clients, grouped_clients, sticky_clients, hidden_clients;
         vector<string> wsp = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
         vector<Key>::iterator itr;
-        vector<Button> BUTTONS;
-        vector<Button>::iterator iit;
+        /*vector<Button> BUTTONS;
+        vector<Button>::iterator iit;*/
         vector<Rule> RULES;
         vector<Rule>::iterator ptr;
         vector<string> rulestemp;
         Atom netatom[NetLast], wmatom[WMLast], utf8string;
         Display *dpy;
         Window checkwin;
-        Client *temp;
         int screen, root, sw, sh, exist,
             GAPS, motion=0,
             numlockmask=0,
@@ -52,8 +36,7 @@ class customwm
         Desktop desktop[total_desktops];
         XWindowAttributes attr;
         Client *current = NULL,
-               *head = NULL,
-               *tail = NULL;
+               *head = NULL;
         string ACTIVE_BORDER,
                INACTIVE_BORDER,
                TITLE_BACKGROUND,
@@ -99,7 +82,7 @@ class customwm
     void toggle_float(Client *c);
     void set_sticky(Client *c, bool s);
     void toggle_sticky(Client *c);
-    ulong getcolor(const char *color);
+    void getConfig(string a, string b, string c);
     void client_decoration_toggle(Client *c);
     void client_decorations_destroy(Client *c);
     void client_decorations_create(Client *c);
@@ -129,16 +112,14 @@ class customwm
     void change_master_height();
     void send_stickies(int desk);
     void grab_win_buttons(Window w);
-    void getConfig(string c, string b, string d);
     void delete_pointer_vectors();
     void scan();
     void update_geometry(Window w, int x, int y, int wi, int h);
     void get_size_hints(Client *c);
+    ulong getcolor(const char *color);
 
     void layout_tiled();
     void layout_monocle();
-    void layout_binary();
-    void layout_accordian();
     void layout_column();
     void layout_tabbed();
     void layout_column_grid_bottom();
@@ -149,12 +130,12 @@ class customwm
     void change_master_size(int step);
     void change_gaps(int step);
     void swap_master();
-    Client* get_client_from_window(Window w);
-    Client* get_prev_client_from_tiled(Window w);
-    Client* get_next_client_from_tiled(Window w);
     void apply_rules(Client *c);
     void show_desktop();
     void ipc(string func, string arg);
+    Client* get_client_from_window(Window w);
+    Client* get_prev_client_from_tiled(Window w);
+    Client* get_next_client_from_tiled(Window w);
 
     int sendevent(Client *c, Atom proto);
     int get_text_prop(Window w, Atom atom, char *text, uint32_t size);

@@ -12,9 +12,8 @@ struct Client {
          is_grouped,
          is_resizable,
          old_state;
-    int x, y, w, h, bw,
-        oldx, oldy, oldw, oldh, oldbw,
-        desk;
+    int x, y, oldx, oldy;
+    uint desk, w, h, bw, oldw, oldh, oldbw, maxw, maxh;
     char name[256];
     Client *next;
     Client *prev;
