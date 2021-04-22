@@ -25,19 +25,16 @@
 * <strike>fake fullscreen</strike>
 * <strike>sticky windows</strike>
 * <strike>disable mapping when focused window is fullscreen</strike>
+* <strike>left/top decoration config</strike>
 
+* mouse/key combo bindings
 * take max available width on key press
 * minimize on titlebar click
-* left/top decoration config
 * hide client
 * handle zero width/height window resize
 
-* accordian layout
 * magnifier layout
-* fibonacci layout (spiral / dwindle)
 * grid layout
-* grid magnifier
-* centered master layout
 
 * group windows and apply action to the group
 * scratchpads
