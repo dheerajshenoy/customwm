@@ -1,5 +1,6 @@
 # CustomWM - A dynamic tiling window manager written in C++
-
+![](https://github.com/dheerajshenoy/customwm/blob/master/screenshots/screen1.png)
+![](https://github.com/dheerajshenoy/customwm/blob/master/screenshots/screen2.png)
 # Why ?
 * Being a window manager enthusiast and a user, I wanted to learn how they actually worked and how they're written.
 
