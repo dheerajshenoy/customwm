@@ -38,3 +38,7 @@
 
 * group windows and apply action to the group
 * scratchpads
+* multi monitor support
+* monitor navigation
+* window to monitor
+* shift monitor view
