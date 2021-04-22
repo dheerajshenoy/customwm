@@ -34,11 +34,7 @@
 * Works with panel like [Polybar](https://github.com/polybar/polybar)
 
 # TODO
-* Layouts - accordian, magnifier, tabbed
-* Hiding clients, sticky clients
-* Grouping windows to perform grouped actions
-* Gaps
-* Client decorations
+[TODO](https://github.com/dheerajshenoy/customwm/edit/master/todo.md)
 
 # Configuration
 The WM is configured using ini file, which gets parsed at run-time (using my very own [INI parser](https://github.com/dheerajshenoy/iniparser) (not well documented)). Check [CONFIG.md](https://github.com/dheerajshenoy/customwm/blob/master/CONFIG.md) file for more info about configuration.
