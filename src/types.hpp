@@ -10,6 +10,7 @@ struct Client {
          is_dec,
          is_fixed,
          is_grouped,
+         is_resizable,
          old_state;
     int x, y, w, h, bw,
         oldx, oldy, oldw, oldh, oldbw,
@@ -68,6 +69,7 @@ enum {
     NetWMWindowTypeMenu,
     NetWMWindowTypeToolbar,
     NetWMWindowTypeUtility,
+    NetShowDesktopMode,
     NetClientList, 
     NetDesktopNames, 
     NetDesktopViewport, 
@@ -83,6 +85,7 @@ enum {
     WMDelete,
     WMState,
     WMTakeFocus,
+    WMNormalHints,
     WMLast
 };
 
