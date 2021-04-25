@@ -125,13 +125,14 @@ update_current_client()
                     if(DECORATIONS_ON_FLOAT && c->dec)
                     {
                         set_window_bg(dpy, c->dec, ACTIVE_BORDER);
+                        XRaiseWindow(dpy, c->dec);
                     }
+                    XRaiseWindow(dpy, c->win);
                 }
                 else if(c->is_fixed)
                 {
                     set_border(dpy, c, FIXED_BORDER);
                     set_float(c, true, true);
-                    XRaiseWindow(dpy, c->win);
                 }
                 else if(c->is_grouped)
                     set_border(dpy, c, GROUPED_BORDER);
@@ -192,7 +193,7 @@ cleanup()
 }
 
 void customwm::
-change_master_height()
+change_height(int step)
 {
 
 }

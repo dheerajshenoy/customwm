@@ -165,7 +165,7 @@ remove_window(Window w, uint desk)
 }
 
 void customwm::
-add_window(Window w, uint desk)
+add_window(Window w, uint desk, Client *copy)
 {
     log("Adding window");
     Client *c, *t;
@@ -212,6 +212,8 @@ add_window(Window w, uint desk)
             }
         }
     }
+    if(copy)
+        copy_client_prop(copy, c);
     current = c;
     save_desktop(current_desktop);
     XSelectInput(dpy, c->win, SLOPPY_FOCUS ? EnterWindowMask: PointerMotionMask);

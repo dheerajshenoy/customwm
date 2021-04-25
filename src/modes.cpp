@@ -147,6 +147,7 @@ toggle_float(Client *c)
             {
                 c->w = c->maxw;
                 c->h = c->maxh;
+                if(c->w == 0 || c->h == 0) get_size_hints(c);
             }
             else
             {
@@ -199,6 +200,10 @@ set_float(Client *c, bool f, bool move)
 {
     log("Setting float");
     if(!c) return;
+    c->oldx = c->x;
+    c->oldy = c->y;
+    c->oldw = c->w;
+    c->oldh = c->h;
     if(f && move)
     {
         if(DECORATIONS_ON_FLOAT)
@@ -208,7 +213,20 @@ set_float(Client *c, bool f, bool move)
             XMapWindow(dpy, c->dec);
             XRaiseWindow(dpy, c->dec);
         }
-        XMoveWindow(dpy, c->win, (sw - c->w)/2, (sh - c->h)/2);
+        if(!c->is_resizable)
+        {
+            c->w = c->maxw;
+            c->h = c->maxh;
+            if(c->w == 0 || c->h == 0) get_size_hints(c);
+        }
+        else
+        {
+            c->w = sw/2;
+            c->h = sh/2;
+        }
+        c->x = (sw - c->w)/2;
+        c->y = (sh - c->h)/2;
+        XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
         XRaiseWindow(dpy, c->win);
     }
     else if(f && DECORATIONS_ON_FLOAT)

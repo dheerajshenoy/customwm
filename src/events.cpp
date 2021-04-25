@@ -77,15 +77,13 @@ map_request(XEvent *e)
     client_to_desktop(d, d->desk);
     XMapWindow(dpy, d->win);
     XLowerWindow(dpy, d->win);
+    copy_client_prop(d, current);
     if(prop == netatom[NetWMWindowTypeDialog])
         d->is_float = true;
     if(d->is_float)
         set_float(d, true, true);
     else if(d->is_full)
         set_fullscreen(current, true);
-    current->is_resizable = d->is_resizable;
-    current->maxw = d->maxw;
-    current->maxh = d->maxh;
     update_current_client();
     applylayout();
 }

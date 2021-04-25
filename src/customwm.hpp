@@ -60,7 +60,7 @@ class customwm
              hidden_client = false;
         float MASTER_FACTOR;
         XButtonEvent s;
-    void add_window(Window w, uint desk);
+    void add_window(Window w, uint desk, Client *copy=NULL);
     void remove_window(Window w, uint desk);
     void setup();
     void setup_restartable();
@@ -109,7 +109,7 @@ class customwm
     void move_win_down();
     void scratchpad_spawn(string scratchkey);
     void applylayout();
-    void change_master_height();
+    void change_master_size(int);
     void send_stickies(int desk);
     void grab_win_buttons(Window w);
     void delete_pointer_vectors();
@@ -126,8 +126,8 @@ class customwm
     void layout_column_grid_top();
     void layout_grid();
 
+    void change_height(int step);
     void change_layout();
-    void change_master_size(int step);
     void change_gaps(int step);
     void swap_master();
     void apply_rules(Client *c);
@@ -154,6 +154,7 @@ class customwm
 
     int manage_xsend_icccm(Client *c, Atom atom);
 
+    void copy_client_prop(Client *c1, Client *c2);
     void set_border(Display *dpy, Client *c, string color);
     void set_window_bg(Display *dpy, Window w, string color);
 

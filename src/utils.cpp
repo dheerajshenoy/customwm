@@ -140,3 +140,26 @@ setup_restartable()
     applylayout();
 }
 
+void customwm::
+copy_client_prop(Client *from, Client *to)
+{
+    to->is_sticky = from->is_sticky;
+    to->is_full = from->is_full;
+    to->is_sticky = from->is_sticky;
+    to->is_resizable = from->is_resizable;
+    //to->is_urgent = from->is_urgent;
+    to->is_hidden = from->is_hidden;
+    to->is_float = from->is_float;
+    to->is_dec = from->is_dec;
+    to->x = from->x;
+    to->y = from->y;
+    to->w = from->w;
+    to->h = from->h;
+    to->oldx = from->oldx;
+    to->oldy = from->oldy;
+    to->oldw = from->oldw;
+    to->oldh = from->oldh;
+    to->win = from->win;
+    to->dec = from->dec;
+    to->desk = from->desk;
+}
