@@ -28,7 +28,7 @@ change_desktop(uint desk)
     log("Changing desktop");
     if(desk == current_desktop)
         return;
-    Client *c, *t;
+    Client *c;
     if(head)
     {
         for(c=head; c; c=c->next)
@@ -40,6 +40,7 @@ change_desktop(uint desk)
                 client_to_desktop(c, desk);
                 remove_window(c->win, current_desktop);
             }
+            log("DD");
         }
     }
     save_desktop(current_desktop);
@@ -49,11 +50,8 @@ change_desktop(uint desk)
         for(c=head; c; c=c->next)
         {
             if(c->is_float)
-            {
                 if(DECORATIONS_ON_FLOAT)
                     XMapWindow(dpy, c->dec);
-                c->is_float = true;
-            }
             get_size_hints(c);
             XMapWindow(dpy, c->win);
         }
@@ -67,8 +65,6 @@ change_desktop(uint desk)
 void customwm::
 client_to_desktop(Client *c, uint desk)
 {
-    Client *d;
-    d = (Client *) malloc(sizeof(Client));
     log("Sending client to desktop " + to_string(desk));
     if(!c) return;
     if(desk == current_desktop) return;
@@ -79,17 +75,16 @@ client_to_desktop(Client *c, uint desk)
         client_decorations_destroy(c);
         c->is_dec = false;
     }
-    copy_client_prop(c, d);
     XUnmapWindow(dpy, c->win);
-    get_size_hints(d);
-    add_window(d->win, desk, d);
-    XMoveResizeWindow(dpy, d->win, d->x, d->y, d->w, d->h);
-    ewmh_set_desktop(d, desk);
+    get_size_hints(c);
+    add_window(c->win, desk, c);
+    XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
+    ewmh_set_desktop(c, desk);
     save_desktop(desk);
     select_desktop(tmp2);
     remove_window(c->win, desk);
     save_desktop(tmp2);
     ewmh_set_client_list();
-    update_current_client();
+    //update_current_client();
     applylayout();
 }
