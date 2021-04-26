@@ -40,7 +40,6 @@ change_desktop(uint desk)
                 client_to_desktop(c, desk);
                 remove_window(c->win, current_desktop);
             }
-            log("DD");
         }
     }
     save_desktop(current_desktop);

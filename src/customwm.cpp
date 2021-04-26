@@ -17,6 +17,8 @@ setup()
     exist = 0;
     init_ewmh();
     read_config();
+    ResizeCursor = XCreateFontCursor(dpy, XC_bottom_right_corner);
+    MoveCursor = XCreateFontCursor(dpy, XC_diamond_cross);
     for(int i=0; i<total_desktops; i++)
         desktop[i] = (Desktop) { .head = head,
                                  .current = current,
@@ -200,7 +202,7 @@ cleanup()
 void customwm::
 toggle_panel()
 {
-    if(current->is_full) return;
+    if(!current || current->is_full) return;
     SHOW_PANEL = !SHOW_PANEL;
     const char *panel_show = "polybar-msg cmd show &";
     const char *panel_hide = "polybar-msg cmd hide &";

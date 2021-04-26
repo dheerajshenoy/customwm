@@ -40,7 +40,7 @@ layout_grid()
                     gaps = 0;
                 if(!SINGLE_CLIENT_BORDER)
                     XSetWindowBorderWidth(dpy, head->win, 0);
-                XMoveResizeWindow(dpy, head->win, gaps, gaps+y-2,
+                update_geometry(head->win, gaps, gaps+y-2,
                     sw-2*gaps, sh-2*gaps-y);
             }
     }
@@ -54,7 +54,7 @@ layout_grid()
         {
             if(!SINGLE_CLIENT_GAPS)
                 gaps = 0;
-            XMoveResizeWindow(dpy, tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-3,
+            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-3,
                 sw-2*BORDER_WIDTH-2*gaps, sh-2*BORDER_WIDTH-2*gaps-y);
         }
         else if(n > 1)
@@ -63,13 +63,13 @@ layout_grid()
             {
                 if(i%2==0)
                 {
-                    XMoveResizeWindow(dpy, tiled_clients.at(i)->win, BORDER_WIDTH+gaps+t,
+                    update_geometry(tiled_clients.at(i)->win, BORDER_WIDTH+gaps+t,
                             BORDER_WIDTH+gaps+y, sw/n - 2*gaps - 2*BORDER_WIDTH,
                             sh/2-2*gaps-2*BORDER_WIDTH-y);
                 }
                 else
                 {
-                    XMoveResizeWindow(dpy, tiled_clients.at(i)->win, BORDER_WIDTH+gaps+t,
+                    update_geometry(tiled_clients.at(i)->win, BORDER_WIDTH+gaps+t,
                             sh/2+BORDER_WIDTH+gaps+y, sw/(n-1) - 2*gaps - 2*BORDER_WIDTH,
                             sh/2-2*gaps-2*BORDER_WIDTH-y);
                     t = t + sw/n;
@@ -217,13 +217,13 @@ layout_tiled()
         {
             if(!SINGLE_CLIENT_GAPS)
                 gaps = 0;
-            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-3,
-                sw-2*BORDER_WIDTH-2*gaps-2, sh-2*BORDER_WIDTH-2*gaps-y);
+            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-2, BORDER_WIDTH+gaps+y-3,
+                sw-2*BORDER_WIDTH-2*gaps-3, sh-2*BORDER_WIDTH-2*gaps-y);
         }
         if(tiled_clients.size() > 1)
         {
-            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-2,
-                    mfact-2*gaps-2*BORDER_WIDTH-1, sh-2*BORDER_WIDTH-2*gaps-y-2);
+            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-2, BORDER_WIDTH+gaps+y-2,
+                    mfact-2*gaps-2*BORDER_WIDTH-2, sh-2*BORDER_WIDTH-2*gaps-y-2);
             n = tiled_clients.size() - 1;
 
             for(int i=1; i<tiled_clients.size(); i++)

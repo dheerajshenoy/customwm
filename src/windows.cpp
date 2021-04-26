@@ -284,3 +284,17 @@ void customwm::
 magnifier_helper(Window w, uint desk, string dir)
 {
 }
+
+void customwm::
+clone_client(Client *c)
+{
+    log("Clone Client");
+    if(!c) return;
+    Client *d;
+    d = (Client *) malloc(sizeof(Client));
+    copy_client_prop(c, d);
+    d->win = c->win;
+    XMapWindow(dpy, d->win);
+    update_current_client();
+    applylayout();
+}

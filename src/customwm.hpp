@@ -62,7 +62,7 @@ class customwm
              hidden_client = false;
         float MASTER_FACTOR;
         XButtonEvent s;
-
+    Cursor ResizeCursor, MoveCursor;
     void add_window(Window w, uint desk, Client *copy=NULL);
     void magnifier_helper(Window w, uint desk, string dir);
     void remove_window(Window w, uint desk);
@@ -102,6 +102,7 @@ class customwm
     void select_desktop(uint desk);
     void save_desktop(uint desk);
     void cleanup();
+    void clone_client(Client *c);
     void move_window_with_key(Client *c, string dir, int step);
     void resize_window_with_key(Client *c, string dir, int step);
     void resize_mouse();

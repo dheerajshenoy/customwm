@@ -192,6 +192,8 @@ spawn(string func, string arg)
             change_layout();
         else if(func == "HIDE")
             hide_client(current);
+        else if(func == "CLONEWIN")
+            clone_client(current);
     }
     else
     {

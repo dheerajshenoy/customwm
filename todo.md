@@ -30,8 +30,8 @@
 * take max available width on key press
 * minimize on titlebar click
 * hide client
+* fullscreen client on desktop change
 
-* magnifier layout
 * grid layout
 
 * group windows and apply action to the group

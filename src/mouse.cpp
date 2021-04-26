@@ -14,7 +14,7 @@ resize_mouse()
     c->oldw = c->w;
     c->oldh = c->h;
     if(XGrabPointer(dpy, root, false, MOUSEMASK, GrabModeAsync, GrabModeAsync, None,
-                None, CurrentTime) != GrabSuccess)
+                ResizeCursor, CurrentTime) != GrabSuccess)
         return;
     do {
         XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
@@ -59,7 +59,7 @@ move_mouse()
     c->oldw = c->w;
     c->oldh = c->h;
     if(XGrabPointer(dpy, root, false, MOUSEMASK, GrabModeAsync, GrabModeAsync, None,
-                None, CurrentTime) != GrabSuccess)
+                MoveCursor, CurrentTime) != GrabSuccess)
         return;
     if(!(XQueryPointer(dpy, root, &dummy, &dummy, &x, &y, &di, &di, &dui)))
         return;
