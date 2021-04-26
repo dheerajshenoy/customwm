@@ -17,6 +17,8 @@ applylayout()
         layout_column_grid_top();
     else if(LAYOUTS.at(current_layout) == "Grid")
         layout_grid();
+    else if(LAYOUTS.at(current_layout) == "Magnifier")
+        layout_magnifier();
 }
 
 void customwm::
@@ -127,13 +129,9 @@ layout_column()
 }
 
 void customwm::
-layout_tabbed()
-{}
-
-void customwm::
-layout_tiled()
+layout_magnifier()
 {
-    log("Tiled layout");
+    log("Magnifier layout");
     if(!head) return;
     Client *c;
     uint y, n=0, mfact = MASTER_FACTOR, 
@@ -177,6 +175,63 @@ layout_tiled()
                         BORDER_WIDTH+gaps+y+t-3, sw-mfact-gaps-2*BORDER_WIDTH+1,
                         sh/n -gaps -2*BORDER_WIDTH - y/n);
                 t = i * (sh-y-gaps)/n;
+            }
+        }
+    }
+
+}
+
+void customwm::
+layout_tabbed()
+{}
+
+void customwm::
+layout_tiled()
+{
+    log("Tiled layout");
+    if(!head) return;
+    Client *c;
+    uint y, n=0, mfact = MASTER_FACTOR, 
+        gaps = GAPS, new_y, new_h,
+        t = 0, s;
+    tiled_clients.clear();
+    (SHOW_PANEL) ? y = PANEL_HEIGHT-1 : y = 0;
+    if(!head->next)
+    {
+            if(!head->is_float)
+            {
+                if(!SINGLE_CLIENT_GAPS)
+                    gaps = 0;
+                if(!SINGLE_CLIENT_BORDER)
+                    XSetWindowBorderWidth(dpy, head->win, 0);
+                update_geometry(head->win, gaps, gaps+y-2,
+                    sw-2*gaps, sh-2*gaps-y);
+            }
+    }
+    else
+    {
+        for(c=head; c; c=c->next)
+            if(!c->is_float)
+                tiled_clients.push_back(c);
+        if(tiled_clients.size() == 1)
+        {
+            if(!SINGLE_CLIENT_GAPS)
+                gaps = 0;
+            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-3,
+                sw-2*BORDER_WIDTH-2*gaps-2, sh-2*BORDER_WIDTH-2*gaps-y);
+        }
+        if(tiled_clients.size() > 1)
+        {
+            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-2,
+                    mfact-2*gaps-2*BORDER_WIDTH-1, sh-2*BORDER_WIDTH-2*gaps-y-2);
+            n = tiled_clients.size() - 1;
+
+            for(int i=1; i<tiled_clients.size(); i++)
+            {
+                update_geometry(tiled_clients.at(i)->win, mfact+BORDER_WIDTH-4,
+                        BORDER_WIDTH+gaps+y+t-3, sw-mfact-gaps-2*BORDER_WIDTH+1,
+                        sh/n - 2*gaps -2*BORDER_WIDTH - y/n);
+                t = i * (sh-y)/n;
             }
         }
     }

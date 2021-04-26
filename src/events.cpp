@@ -38,7 +38,8 @@ map_request(XEvent *e)
         if(prop == netatom[NetWMWindowTypeDock]
         || prop == netatom[NetWMWindowTypeToolbar]
         || prop == netatom[NetWMWindowTypeUtility]
-        || prop == netatom[NetWMWindowTypeMenu])
+        || prop == netatom[NetWMWindowTypeMenu]
+        || prop == netatom[NetWMWindowTypeSplash])
         {
             XMapWindow(dpy, w);
             return;
@@ -79,7 +80,9 @@ map_request(XEvent *e)
     XLowerWindow(dpy, d->win);
     copy_client_prop(d, current);
     if(prop == netatom[NetWMWindowTypeDialog])
-        d->is_float = true;
+    {
+        set_float(d, true, true);
+    }
     if(d->is_float)
         set_float(d, true, true);
     else if(d->is_full)
@@ -165,13 +168,6 @@ button_press(XEvent *e)
     if(ev->window == None) return;
     c = get_client_from_window(ev->subwindow);
     if(!c) return;
-    if(!ev->state && ev->button == Button1 && current->win != c->win)
-    {
-        if(current != c)
-            current = c;
-        update_current_client();
-    }
-
     if(CLEANMASK(ev->state) == CLEANMASK(Mod4Mask))
     {
         if(current != c)
@@ -188,6 +184,13 @@ button_press(XEvent *e)
         else if(ev->button == Button3)
             resize_mouse();
     }
+    if(ev->button == Button1)
+    {
+        if(current != c)
+            current = c;
+        update_current_client();
+    }
+
 }
 
 void customwm::

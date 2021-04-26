@@ -9,16 +9,18 @@ class customwm
 {
     public:
         vector<Key>KEYS;
-        vector<string> PROGRAMS, LAYOUTS;
+        vector<string> PROGRAMS,
+            LAYOUTS,
+            wsp = { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
+            rulestemp;
         vector<vector<string>> K, P;
-        vector<Client *> tiled_clients, fixed_clients, grouped_clients, sticky_clients, hidden_clients;
-        vector<string> wsp = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        vector<Client *> tiled_clients,
+            fixed_clients,
+            grouped_clients,
+            hidden_clients;
         vector<Key>::iterator itr;
-        /*vector<Button> BUTTONS;
-        vector<Button>::iterator iit;*/
         vector<Rule> RULES;
         vector<Rule>::iterator ptr;
-        vector<string> rulestemp;
         Atom netatom[NetLast], wmatom[WMLast], utf8string;
         Display *dpy;
         Window checkwin;
@@ -60,7 +62,9 @@ class customwm
              hidden_client = false;
         float MASTER_FACTOR;
         XButtonEvent s;
+
     void add_window(Window w, uint desk, Client *copy=NULL);
+    void magnifier_helper(Window w, uint desk, string dir);
     void remove_window(Window w, uint desk);
     void setup();
     void setup_restartable();
@@ -71,7 +75,8 @@ class customwm
     void update_current_client();
     void read_keys(vector<vector<string>> k);
     void read_config();
-    vector<string> split(string STR, string DELIM);
+    void monitor_setup(void);
+
     void fake_fullscreen(Client *c);
     void set_fullscreen(Client *c, bool f);
     void toggle_fullscreen(Client *c);
@@ -82,6 +87,9 @@ class customwm
     void toggle_float(Client *c);
     void set_sticky(Client *c, bool s);
     void toggle_sticky(Client *c);
+    void toggle_hidden(Client *c);
+    void set_hidden(Client *c, bool hidden);
+
     void getConfig(string a, string b, string c);
     void client_decoration_toggle(Client *c);
     void client_decorations_destroy(Client *c);
@@ -125,11 +133,12 @@ class customwm
     void layout_column_grid_bottom();
     void layout_column_grid_top();
     void layout_grid();
+    void layout_magnifier();
 
     void change_height(int step);
     void change_layout();
     void change_gaps(int step);
-    void swap_master();
+    void swap_master(Client *c);
     void apply_rules(Client *c);
     void show_desktop();
     void ipc(string func, string arg);
@@ -155,8 +164,8 @@ class customwm
     int manage_xsend_icccm(Client *c, Atom atom);
 
     void copy_client_prop(Client *c1, Client *c2);
-    void set_border(Display *dpy, Client *c, string color);
-    void set_window_bg(Display *dpy, Window w, string color);
+    void set_border(Client *c, string color);
+    void set_window_bg(Window w, string color);
 
     void client_message(XEvent *e);
     void property_notify(XEvent *e);
@@ -171,4 +180,6 @@ class customwm
     void configure_request(XEvent *e);
     void configure_notify(XEvent *e);
     void log(string msg, uint stick_out=0);
+    
+    vector<string> split(string STR, string DELIM);
 };

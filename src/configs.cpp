@@ -13,7 +13,6 @@ getConfig(string c, string b, string d)
         del = "=";
 }
 
-
 void customwm::
 read_config()
 {
@@ -48,9 +47,7 @@ read_config()
         SLOPPY_FOCUS = false;
     
     if(config.getValue("NO_BORDERS", "WM", "true").at(0) == "true")
-    {
         BORDER_WIDTH = 0;
-    }
     
     if(config.getValue("TITLE_COLOR_FOR_MODES", "CLIENT", "true").at(0) == "true")
         TITLE_COLOR_FOR_MODES = true;
@@ -188,13 +185,13 @@ spawn(string func, string arg)
         else if(func == "CENTER")
             center_client(current);
         else if(func == "SWAPMASTER")
-            swap_master();
+            swap_master(current);
         else if(func == "DMODE")
             show_desktop();
         else if(func == "LAYOUT")
             change_layout();
-        /*else if(func == "HIDE")
-            hide_client(current);*/
+        else if(func == "HIDE")
+            hide_client(current);
     }
     else
     {
@@ -212,8 +209,8 @@ spawn(string func, string arg)
                 toggle_panel();
             /*else if(arg == "fixed")
                 toggle_fixed(current);*/
-            /*else if(arg == "group")
-                toggle_grouped(current);*/
+            else if(arg == "group")
+                toggle_grouped(current);
         }
         else if(func == "CLDESKTOP")
             client_to_desktop(current, stoi(arg)-1);
@@ -245,8 +242,8 @@ spawn(string func, string arg)
             change_master_size(stoi(arg));
         else if(func == "GAPS")
             change_gaps(stoi(arg));
-        /*else if(func == "SHOW")
-            show_client(arg);*/
+        else if(func == "SHOW")
+            show_client(arg);
     }
 }
 

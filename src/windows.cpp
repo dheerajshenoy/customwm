@@ -98,25 +98,25 @@ move_window_to_corner(Client *c, string corner)
     c->h = sh/2;
     if(corner == "top-left" || corner == "tl")
     {
-        XMoveResizeWindow(dpy, c->win, 0, BORDER_WIDTH+(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0), c->w-2*BORDER_WIDTH, c->h);
+        XMoveResizeWindow(dpy, c->win, 0, PANEL_HEIGHT + (DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0), c->w-2*BORDER_WIDTH, c->h);
         if(c->dec)
-            XMoveResizeWindow(dpy, c->dec, 0, 0, c->w-2*BORDER_WIDTH, TITLE_HEIGHT);
+            XMoveResizeWindow(dpy, c->dec, 0, PANEL_HEIGHT, c->w-2*BORDER_WIDTH, TITLE_HEIGHT);
     }
     else if(corner == "top-right" || corner == "tr")
     {
-        XMoveResizeWindow(dpy, c->win, sw-c->w, BORDER_WIDTH+(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0), c->w-2*BORDER_WIDTH, c->h);
+        XMoveResizeWindow(dpy, c->win, sw-c->w, PANEL_HEIGHT+(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0), c->w-2*BORDER_WIDTH, c->h);
         if(c->dec)
-            XMoveResizeWindow(dpy, c->dec, sw-c->w, 0, c->w-2*BORDER_WIDTH, TITLE_HEIGHT);
+            XMoveResizeWindow(dpy, c->dec, sw-c->w, PANEL_HEIGHT, c->w-2*BORDER_WIDTH, TITLE_HEIGHT);
     }
     else if(corner == "bottom-left" || corner == "bl")
     {
-        XMoveResizeWindow(dpy, c->win, 0, c->h + BORDER_WIDTH+(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0), c->w-2*BORDER_WIDTH, c->h-2*BORDER_WIDTH-(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0));
+        XMoveResizeWindow(dpy, c->win, 0, c->h + (DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0), c->w-2*BORDER_WIDTH, c->h-2*BORDER_WIDTH-(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0));
         if(c->dec)
             XMoveResizeWindow(dpy, c->dec, 0, c->h, c->w-2*BORDER_WIDTH, TITLE_HEIGHT);
     }
     else if(corner == "bottom-right" || corner == "br")
     {
-        XMoveResizeWindow(dpy, c->win, sw-c->w, c->h + BORDER_WIDTH+(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0), c->w-2*BORDER_WIDTH, c->h-2*BORDER_WIDTH-(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0));
+        XMoveResizeWindow(dpy, c->win, sw-c->w, c->h + (DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0), c->w-2*BORDER_WIDTH, c->h-2*BORDER_WIDTH-(DECORATIONS_ON_FLOAT ? TITLE_HEIGHT : 0));
         if(c->dec)
             XMoveResizeWindow(dpy, c->dec, sw-c->w, c->h, c->w-2*BORDER_WIDTH, TITLE_HEIGHT);
     }
@@ -278,4 +278,9 @@ focus_next()
     else if(!current->next)
         current = head;
     update_current_client();
+}
+
+void customwm::
+magnifier_helper(Window w, uint desk, string dir)
+{
 }

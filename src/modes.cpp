@@ -132,8 +132,10 @@ toggle_float(Client *c)
 {
     log("Setting float");
     if(!c || c->is_fixed || c->is_full) return;
-    if(c->is_grouped)
+    if(c->is_grouped && grouped_clients.size() > 1)
     {
+        for(int i=0; i<grouped_clients.size(); i++)
+            toggle_float(grouped_clients.at(i));
     }
     else
     {
@@ -148,6 +150,8 @@ toggle_float(Client *c)
                 c->w = c->maxw;
                 c->h = c->maxh;
                 if(c->w == 0 || c->h == 0) get_size_hints(c);
+                c->w = c->maxw;
+                c->h = c->maxh;
             }
             else
             {
@@ -192,7 +196,6 @@ toggle_float(Client *c)
     }
     update_current_client();
     applylayout();
-
 }
 
 void customwm::
@@ -258,4 +261,45 @@ toggle_fixed(Client *c)
     c->is_fixed = !c->is_fixed;
     update_current_client();
     //log("Setting client as fixed");
+}
+
+void customwm::
+toggle_hidden(Client *c)
+{
+    if(!c) return;
+    if(!c->is_hidden)
+        hidden_clients.push_back(c);
+    else
+    {
+        for(int i=0; i<hidden_clients.size(); i++)
+            if(hidden_clients.at(i) == c)
+                hidden_clients.erase(hidden_clients.begin() + i);
+    }
+    c->is_hidden = !c->is_hidden;
+}
+
+void customwm::
+set_hidden(Client *c, bool hidden)
+{
+    if(!c) return;
+    if(hidden)
+    {
+        XUnmapWindow(dpy, c->win);
+        hidden_clients.push_back(c);
+        remove_window(c->win, current_desktop);
+        c->is_hidden = true;
+    }
+    else
+    {
+        for(int i=0; i<hidden_clients.size(); i++)
+            if(hidden_clients.at(i) == c)
+            {
+                c->is_hidden = false;
+                client_to_desktop(c, current_desktop);
+                XMapWindow(dpy, c->win);
+                hidden_clients.erase(hidden_clients.begin() + i);
+            }
+    }
+    update_current_client();
+    applylayout();
 }

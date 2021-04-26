@@ -3,7 +3,7 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
-#include <X11/extensions/shape.h>
+#include <X11/extensions/Xrandr.h>
 #include <X11/XKBlib.h>
 
 #include <vector>
@@ -27,3 +27,4 @@
 #include "mouse.cpp"
 #include "scratchpads.cpp"
 #include "rules.cpp"
+#include "monitors.cpp"

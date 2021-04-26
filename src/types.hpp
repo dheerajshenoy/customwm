@@ -19,6 +19,11 @@ struct Client {
     Client *prev;
 };
 
+struct Monitor {
+    int x, y;
+    uint width, height, screen;
+};
+
 struct Desktop {
     Client *head,
            *current;

@@ -118,26 +118,26 @@ update_current_client()
             else
             {
                 if(c->is_sticky)
-                    set_border(dpy, c, STICKY_BORDER);
+                    set_border(c, STICKY_BORDER);
                 else if(c->is_float && !c->is_grouped)
                 {
-                    set_border(dpy, c, FLOATING_BORDER);
+                    set_border(c, FLOATING_BORDER);
                     if(DECORATIONS_ON_FLOAT && c->dec)
                     {
-                        set_window_bg(dpy, c->dec, ACTIVE_BORDER);
+                        set_window_bg(c->dec, ACTIVE_BORDER);
                         XRaiseWindow(dpy, c->dec);
                     }
                     XRaiseWindow(dpy, c->win);
                 }
                 else if(c->is_fixed)
                 {
-                    set_border(dpy, c, FIXED_BORDER);
+                    set_border(c, FIXED_BORDER);
                     set_float(c, true, true);
                 }
                 else if(c->is_grouped)
-                    set_border(dpy, c, GROUPED_BORDER);
+                    set_border(c, GROUPED_BORDER);
                 else
-                    set_border(dpy, c, ACTIVE_BORDER);
+                    set_border(c, ACTIVE_BORDER);
             }
             XSetInputFocus(dpy, c->win, RevertToPointerRoot, CurrentTime);
             XChangeProperty(dpy, c->win, netatom[NetActiveWindow],
@@ -148,9 +148,14 @@ update_current_client()
         {
             if(c->dec)
             {
-                set_window_bg(dpy, c->dec, INACTIVE_BORDER);
+                set_window_bg(c->dec, INACTIVE_BORDER);
             }
-            set_border(dpy, c, INACTIVE_BORDER);
+            if(c->is_grouped)
+                set_border(c, GROUPED_BORDER);
+            else if(c->is_sticky)
+                set_border(c, STICKY_BORDER);
+            else
+                set_border(c, INACTIVE_BORDER);
         }
     }
     XSync(dpy, false);
@@ -160,9 +165,7 @@ void customwm::
 hide_client(Client *c)
 {
     if(!c) return;
-    XUnmapWindow(dpy, c->win);
-    hidden_clients.push_back(c);
-    remove_window(c->win, current_desktop);
+    set_hidden(c, true);
 }
 
 void customwm::
@@ -170,9 +173,11 @@ show_client(string pos)
 {
     if(hidden_clients.size() == 0) return;
     if(pos == "first")
-    {}
+    {
+        set_hidden(hidden_clients[0], false);
+    }
     else if(pos == "last" || pos == "recent")
-    {}
+        set_hidden(hidden_clients.back(), false);
 }
 
 void customwm::
@@ -190,12 +195,6 @@ cleanup()
     XDeleteProperty(dpy, root, netatom[NetSupported]);
     XUngrabKey(dpy, AnyKey, AnyModifier, root);
     XCloseDisplay(dpy);
-}
-
-void customwm::
-change_height(int step)
-{
-
 }
 
 void customwm::
@@ -223,22 +222,17 @@ change_master_size(int step)
 }
 
 void customwm::
-change_gaps(int step)
-{
-    if(GAPS + step >= -1)
-        GAPS = GAPS + step;
-    applylayout();
-}
-
-void customwm::
-swap_master()
+swap_master(Client *c)
 {
     Window tmp;
-    if(!head || !current || current->is_float) return;
+    Client *temp;
+    if(!head || !c || c->is_float) return;
     tmp = head->win;;
-    head->win = current->win;
-    current->win = tmp;
-    current = head;
+    head->win = c->win;
+    c->win = tmp;
+    copy_client_prop(head, c);
+    c = head;
+    current = c;
     update_current_client();
     applylayout();
 }

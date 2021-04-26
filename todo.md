@@ -21,17 +21,15 @@
 * <strike>binary layout</strike>
 * <strike>column grid top</strike>
 * <strike>column grid bottom</strike>
-* <strike>deck layout</strike>
 * <strike>fake fullscreen</strike>
 * <strike>sticky windows</strike>
 * <strike>disable mapping when focused window is fullscreen</strike>
 * <strike>left/top decoration config</strike>
+* <strike>handle zero width/height window resize</strike>
 
-* mouse/key combo bindings
 * take max available width on key press
 * minimize on titlebar click
 * hide client
-* handle zero width/height window resize
 
 * magnifier layout
 * grid layout

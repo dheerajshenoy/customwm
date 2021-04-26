@@ -1,13 +1,13 @@
 void customwm::
-set_border(Display *dpy, Client *c, string color)
+set_border(Client *c, string color)
 {
     XSetWindowBorder(dpy, c->win, getcolor(color.c_str()));
     if(TITLE_COLOR_FOR_MODES && c->dec)
-        set_window_bg(dpy, c->dec, color);
+        set_window_bg(c->dec, color);
 }
 
 void customwm::
-set_window_bg(Display *dpy, Window w, string color)
+set_window_bg(Window w, string color)
 {
     XSetWindowBackground(dpy, w, getcolor(color.c_str()));
     XClearWindow(dpy, w);
@@ -29,7 +29,10 @@ getcolor(const char *color)
 void customwm::
 update_geometry(Window w, int x, int y, int wi, int h)
 {
-    XMoveResizeWindow(dpy, w, x, y, wi, h);
+    if(wi == 0 || h == 0)
+        XMoveResizeWindow(dpy, w, x, y, wi + 10, h + 10);
+    else
+        XMoveResizeWindow(dpy, w, x, y, wi, h);
 }
 
 void customwm::
@@ -48,13 +51,10 @@ delete_pointer_vectors()
         delete(p);
     for(auto p: fixed_clients)
         delete(p);
-    for(auto p: sticky_clients)
-        delete(p);
     for(auto p: hidden_clients)
         delete(p);
     tiled_clients.clear();
     fixed_clients.clear();
-    sticky_clients.clear();
     hidden_clients.clear();
 }
 
@@ -122,6 +122,21 @@ get_client_from_window(Window w)
 }
 
 void customwm::
+change_height(int step)
+{
+
+}
+
+void customwm::
+change_gaps(int step)
+{
+    if(GAPS + step >= -1 && GAPS + step < 40)
+        GAPS = GAPS + step;
+    applylayout();
+}
+
+
+void customwm::
 change_layout()
 {
     if(current_layout < LAYOUTS.size()-1)
@@ -159,7 +174,6 @@ copy_client_prop(Client *from, Client *to)
     to->oldy = from->oldy;
     to->oldw = from->oldw;
     to->oldh = from->oldh;
-    to->win = from->win;
     to->dec = from->dec;
     to->desk = from->desk;
 }
