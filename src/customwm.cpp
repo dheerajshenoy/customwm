@@ -17,6 +17,9 @@ setup()
     exist = 0;
     init_ewmh();
     read_config();
+    /*has_randr = XRRQueryExtension(dpy, &randr_event_base, &dummy);
+    init_heads();*/
+    ipc_init();
     ResizeCursor = XCreateFontCursor(dpy, XC_bottom_right_corner);
     MoveCursor = XCreateFontCursor(dpy, XC_diamond_cross);
     for(int i=0; i<total_desktops; i++)
@@ -232,7 +235,7 @@ swap_master(Client *c)
     tmp = head->win;;
     head->win = c->win;
     c->win = tmp;
-    copy_client_prop(head, c);
+//    copy_client_prop(head, c);
     c = head;
     current = c;
     update_current_client();

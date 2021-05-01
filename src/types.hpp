@@ -73,6 +73,8 @@ enum {
     NetWMWindowTypeMenu,
     NetWMWindowTypeToolbar,
     NetWMWindowTypeUtility,
+    NetWMWindowTypeModal,
+    NetWMWindowTypeNotification,
     NetShowDesktopMode,
     NetClientList, 
     NetDesktopNames, 

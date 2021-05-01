@@ -143,6 +143,7 @@ change_layout()
         current_layout++;
     else
         current_layout = 0;
+    ipc_set_layout(current_layout);
     applylayout();
 }
 

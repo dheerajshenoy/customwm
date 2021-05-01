@@ -2,12 +2,12 @@
 void customwm::
 map_notify(XEvent *e)
 {
-    log("Map Notify");
+    /*log("Map Notify");
     XMapEvent *ev = &e->xmap;
     Window trans = None;
     XGetTransientForHint(dpy, ev->window, &trans);
     if(trans != None)
-        XSetInputFocus(dpy, trans, RevertToPointerRoot, CurrentTime);
+        XSetInputFocus(dpy, trans, RevertToParent, CurrentTime);*/
 }
 
 // MAP REQUEST
@@ -18,6 +18,7 @@ map_request(XEvent *e)
     if(show_mode)
     {
         log("Desktop mode is active, not mapping the requested client");
+        system("notify-send 'WM in desktop Mode'");
         return;
     }
     XMapRequestEvent *ev = &e->xmaprequest;
@@ -39,13 +40,13 @@ map_request(XEvent *e)
         || prop == netatom[NetWMWindowTypeToolbar]
         || prop == netatom[NetWMWindowTypeUtility]
         || prop == netatom[NetWMWindowTypeMenu]
-        || prop == netatom[NetWMWindowTypeSplash])
+        || prop == netatom[NetWMWindowTypeSplash]
+        || prop == netatom[NetWMWindowTypeNotification])
         {
             XMapWindow(dpy, w);
             return;
         }
     }
-
     // Make sure we aren't mapping the same window twice
     for(Client *c=head; c; c=c->next)
         if(c->win == w) return;
@@ -79,14 +80,14 @@ map_request(XEvent *e)
     XMapWindow(dpy, d->win);
     XLowerWindow(dpy, d->win);
     copy_client_prop(d, current);
-    if(prop == netatom[NetWMWindowTypeDialog])
+    if(prop == netatom[NetWMWindowTypeDialog] || prop == netatom[NetWMWindowTypeModal])
     {
-        set_float(d, true, true);
+        set_float(current, true, true);
     }
     if(d->is_float)
         set_float(d, true, true);
     else if(d->is_full)
-        set_fullscreen(current, true);
+        set_fullscreen(d, true);
     update_current_client();
     applylayout();
 }
@@ -128,6 +129,7 @@ configure_notify(XEvent *e)
     c= get_client_from_window(ev->window);
     if(!c) return;
     log("configure notify");
+    if(c->x == ev->x && c->y == ev->y && c->w == ev->width && c->h == ev->height) return;
     c->x = ev->x;
     c->y = ev->y;
     c->w = ev->width;
@@ -146,8 +148,11 @@ client_message(XEvent *e)
     {
         if(cme->data.l[1] == netatom[NetWMFullscreen] || cme->data.l[2] == netatom[NetWMFullscreen])
             toggle_fullscreen(c);
-        /*else if (cme->message_type == netatom[NetActiveWindow])
-            current = c;*/
+        else if (cme->message_type == netatom[NetActiveWindow])
+        {
+            current = c;
+            update_current_client();
+        }
 
         else if (cme->message_type == netatom[NetWMDesktop])
         {
@@ -165,9 +170,9 @@ button_press(XEvent *e)
     log("Button Press");
     Client *c;
     XButtonPressedEvent *ev = &e->xbutton;
-    if(ev->window == None) return;
     c = get_client_from_window(ev->subwindow);
     if(!c) return;
+
     if(CLEANMASK(ev->state) == CLEANMASK(Mod4Mask))
     {
         if(current != c)
@@ -190,7 +195,6 @@ button_press(XEvent *e)
             current = c;
         update_current_client();
     }
-
 }
 
 void customwm::
@@ -218,14 +222,12 @@ enter_notify(XEvent *e)
     XCrossingEvent *ev = &e->xcrossing;
     c = get_client_from_window(ev->window);
     if(!c) return;
-
     if(SLOPPY_FOCUS && c->win != current->win)
     {
         current = c;
         update_current_client();
         XAllowEvents(dpy, ReplayPointer, CurrentTime);
     }
-
 }
 
 void customwm::

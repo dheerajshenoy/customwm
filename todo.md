@@ -31,7 +31,7 @@
 * minimize on titlebar click
 * hide client
 * fullscreen client on desktop change
-
+* sloppyfocus bug fix
 * grid layout
 
 * group windows and apply action to the group

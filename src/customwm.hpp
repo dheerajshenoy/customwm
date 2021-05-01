@@ -18,13 +18,14 @@ class customwm
             fixed_clients,
             grouped_clients,
             hidden_clients;
+        vector<Monitor> MONITORS;
         vector<Key>::iterator itr;
         vector<Rule> RULES;
         vector<Rule>::iterator ptr;
         Atom netatom[NetLast], wmatom[WMLast], utf8string;
         Display *dpy;
         Window checkwin;
-        int screen, root, sw, sh, exist,
+        int screen, root, sw, sh, exist, dummy, randr_event_base,
             GAPS, motion=0,
             numlockmask=0,
             current_desktop=0,
@@ -33,7 +34,7 @@ class customwm
             TAB_HEIGHT = 10,
             PANEL_HEIGHT=30,
             current_layout=0;
-        fstream logfile;
+        fstream logfile, layoutFile, gapFile;
         const static int total_desktops=9;
         Desktop desktop[total_desktops];
         XWindowAttributes attr;
@@ -59,7 +60,8 @@ class customwm
              SINGLE_CLIENT_BORDER,
              SINGLE_CLIENT_GAPS,
              DECORATIONS_ON_FLOAT,
-             hidden_client = false;
+             hidden_client = false,
+             has_randr;
         float MASTER_FACTOR;
         XButtonEvent s;
     Cursor ResizeCursor, MoveCursor;
@@ -75,6 +77,7 @@ class customwm
     void update_current_client();
     void read_keys(vector<vector<string>> k);
     void read_config();
+    void init_heads();
     void monitor_setup(void);
 
     void fake_fullscreen(Client *c);
@@ -159,8 +162,6 @@ class customwm
     void ewmh_init_number_of_desktops();
     
     void manage_args(vector<string> args, int argc);
-    string ipc_get_layout();
-    string ipc_get_current_workspace();
 
     int manage_xsend_icccm(Client *c, Atom atom);
 
@@ -182,5 +183,15 @@ class customwm
     void configure_notify(XEvent *e);
     void log(string msg, uint stick_out=0);
     
+    void ipc_init();
+    void ipc_set_layout(uint l);
+    void ipc_set_gaps(uint gaps);
+    void ipc_set_workspace(uint wsp);
+
+    string ipc_get_layout();
+    uint ipc_get_gaps();
+    uint ipc_get_workspace();
+
+
     vector<string> split(string STR, string DELIM);
 };

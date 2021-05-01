@@ -19,6 +19,8 @@ applylayout()
         layout_grid();
     else if(LAYOUTS.at(current_layout) == "Magnifier")
         layout_magnifier();
+    else if(LAYOUTS.at(current_layout) == "Floating")
+    {}
 }
 
 void customwm::
@@ -98,8 +100,8 @@ layout_column()
                     gaps = 0;
                 if(!SINGLE_CLIENT_BORDER)
                     XSetWindowBorderWidth(dpy, head->win, 0);
-                XMoveResizeWindow(dpy, head->win, gaps, gaps+y-2,
-                    sw-2*gaps, sh-2*gaps-y);
+                update_geometry(head->win, gaps, gaps+y-3,
+                    sw-2*gaps, sh-2*gaps-y+3);
             }
     }
     else
@@ -112,16 +114,16 @@ layout_column()
         {
             if(!SINGLE_CLIENT_GAPS)
                 gaps = 0;
-            XMoveResizeWindow(dpy, tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-3,
-                sw-2*BORDER_WIDTH-2*gaps, sh-2*BORDER_WIDTH-2*gaps-y);
+            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-5,
+                sw-2*BORDER_WIDTH-2*gaps+1, sh-2*BORDER_WIDTH-2*gaps-y+3);
         }
         else if(n > 1)
         {
             for(int i=0; i<n; i++)
             {
-                XMoveResizeWindow(dpy, tiled_clients.at(i)->win, gaps+BORDER_WIDTH-5,
-                    BORDER_WIDTH+gaps+y+t-2, sw-2*gaps-2*BORDER_WIDTH+1,
-                    sh/n - 2*gaps -2*BORDER_WIDTH - y/n);
+                update_geometry(tiled_clients.at(i)->win, gaps+BORDER_WIDTH-3,
+                    BORDER_WIDTH+gaps+y+t-3, sw-2*gaps-2*BORDER_WIDTH+1,
+                    sh/n - 2*gaps -2*BORDER_WIDTH - y/n + 1);
                 t = t + (sh-y)/n;
             }
         }
@@ -205,7 +207,7 @@ layout_tiled()
                 if(!SINGLE_CLIENT_BORDER)
                     XSetWindowBorderWidth(dpy, head->win, 0);
                 update_geometry(head->win, gaps, gaps+y-2,
-                    sw-2*gaps, sh-2*gaps-y);
+                    sw-2*gaps, sh-2*gaps-y+2);
             }
     }
     else
@@ -217,19 +219,19 @@ layout_tiled()
         {
             if(!SINGLE_CLIENT_GAPS)
                 gaps = 0;
-            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-2, BORDER_WIDTH+gaps+y-3,
-                sw-2*BORDER_WIDTH-2*gaps-3, sh-2*BORDER_WIDTH-2*gaps-y);
+            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-3, BORDER_WIDTH+gaps+y-4,
+                sw-2*BORDER_WIDTH-2*gaps, sh-2*BORDER_WIDTH-2*gaps-y+1);
         }
         if(tiled_clients.size() > 1)
         {
-            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-2, BORDER_WIDTH+gaps+y-2,
-                    mfact-2*gaps-2*BORDER_WIDTH-2, sh-2*BORDER_WIDTH-2*gaps-y-2);
+            update_geometry(tiled_clients.at(0)->win, BORDER_WIDTH+gaps-2, BORDER_WIDTH+gaps+y-3,
+                    mfact-2*gaps-2*BORDER_WIDTH-2, sh-2*BORDER_WIDTH-2*gaps-y);
             n = tiled_clients.size() - 1;
 
             for(int i=1; i<tiled_clients.size(); i++)
             {
                 update_geometry(tiled_clients.at(i)->win, mfact+BORDER_WIDTH-4,
-                        BORDER_WIDTH+gaps+y+t-3, sw-mfact-gaps-2*BORDER_WIDTH+1,
+                        BORDER_WIDTH+gaps+y+t-4, sw-mfact-gaps-2*BORDER_WIDTH+1,
                         sh/n - 2*gaps -2*BORDER_WIDTH - y/n);
                 t = i * (sh-y)/n;
             }

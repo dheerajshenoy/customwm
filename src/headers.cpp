@@ -28,3 +28,4 @@
 #include "scratchpads.cpp"
 #include "rules.cpp"
 #include "monitors.cpp"
+#include "ipc.cpp"

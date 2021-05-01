@@ -58,6 +58,7 @@ change_desktop(uint desk)
     current_desktop = desk;
     ewmh_set_client_list();
     update_current_client();
+    ipc_set_layout(current_layout);
     applylayout();
 }
 

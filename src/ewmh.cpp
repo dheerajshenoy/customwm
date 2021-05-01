@@ -23,6 +23,8 @@ init_ewmh()
     netatom[NetWMWindowTypeMenu] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_MENU", false);
     netatom[NetWMWindowTypeToolbar] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_TOOLBAR", false);
     netatom[NetWMWindowTypeSplash] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_SPLASH", false);
+    netatom[NetWMWindowTypeModal] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_MODAL", false);
+    netatom[NetWMWindowTypeNotification] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_NOTIFICATION", false);
     netatom[NetShowDesktopMode] = XInternAtom(dpy, "_NET_SHOWING_DESKTOP", false);
     netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", false);
     netatom[NetCurrentDesktop]= XInternAtom(dpy, "_NET_CURRENT_DESKTOP", false);
